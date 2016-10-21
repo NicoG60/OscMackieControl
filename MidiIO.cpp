@@ -16,8 +16,8 @@ MidiIO::MidiIO(QObject* parent) :
 
 MidiIO::~MidiIO()
 {
-    if(midiIn->isPortOpen())    midiIn->closePort();
-    if(midiOut->isPortOpen())   midiOut->closePort();
+    midiIn->closePort();
+    midiOut->closePort();
 
     timer->stop();
 
@@ -51,6 +51,7 @@ QStringList MidiIO::getAvailableOutputPort()
 
 bool MidiIO::connectInputPort(uint index)
 {
+    midiIn->closePort();
     bool r = index < midiIn->getPortCount();
     if(r)
     {
@@ -88,6 +89,7 @@ bool MidiIO::connectInputPort(QString name)
 
 bool MidiIO::connectOutputPort(uint index)
 {
+    midiOut->closePort();
     bool r = index < midiOut->getPortCount();
     if(r)
     {

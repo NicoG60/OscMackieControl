@@ -45,7 +45,13 @@
 
 #define RTMIDI_VERSION "2.1.1"
 
+#ifdef Q_OS_WIN
 #define __WINDOWS_MM__
+#endif
+
+#ifdef Q_OS_OSX
+#define __MACOSX_CORE__
+#endif
 
 #include <exception>
 #include <iostream>

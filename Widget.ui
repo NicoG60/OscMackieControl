@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Widget</string>
+   <string>Mackie Control to OSC Bridge</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
@@ -133,6 +133,9 @@
       <string>Status</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QComboBox" name="cb_overlays"/>
+      </item>
       <item>
        <widget class="QLabel" name="status">
         <property name="text">

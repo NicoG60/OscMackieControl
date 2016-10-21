@@ -15,18 +15,26 @@ TEMPLATE = app
 SOURCES += main.cpp\
         Widget.cpp \
     RtMidi.cpp \
-    MidiIO.cpp
+    MidiIO.cpp \
+    OscIO.cpp \
+    Translator.cpp
 
 HEADERS  += Widget.h \
     midiNote.h \
     RtMidi.h \
-    MidiIO.h
+    MidiIO.h \
+    OscIO.h \
+    Translator.h
 
 FORMS    += Widget.ui
 
-win32: LIBS += -L$$PWD/lib/ -losc
+win32: LIBS += -L$$PWD/lib/win32 -losc
 win32: LIBS += -lwinmm
 
+osx: LIBS += -L$$PWD/lib/osx -losc
+osx: LIBS += -framework CoreMIDI
+osx: LIBS += -framework CoreAudio
+osx: LIBS += -framework CoreFoundation
 INCLUDEPATH += $$PWD/osc/.
 DEPENDPATH += $$PWD/osc/.
 
