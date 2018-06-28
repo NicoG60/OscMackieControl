@@ -83,7 +83,7 @@ void Widget::on_cb_overlays_activated(const QString &arg1)
 
     overlays.endGroup();
 
-    for(register int i = 0; i < 112; i++)
+	for(int i = 0; i < 112; i++)
         oscIO->sendOsc("/char"+QString::number(i+1), QString(" "));
 }
 

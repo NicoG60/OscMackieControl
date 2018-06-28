@@ -31,7 +31,7 @@ QStringList MidiIO::getAvailableInputPort()
 
     int nPort = midiIn->getPortCount();
 
-    for(register int i = 0; i < nPort; i++)
+	for(int i = 0; i < nPort; i++)
         l.append(QString::fromStdString(midiIn->getPortName(i)));
 
     return l;
@@ -43,7 +43,7 @@ QStringList MidiIO::getAvailableOutputPort()
 
     int nPort = midiOut->getPortCount();
 
-    for(register int i = 0; i < nPort; i++)
+	for(int i = 0; i < nPort; i++)
         l.append(QString::fromStdString(midiOut->getPortName(i)));
 
     return l;

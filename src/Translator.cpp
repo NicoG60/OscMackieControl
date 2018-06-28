@@ -18,12 +18,12 @@ Translator::Translator(OscIO *oscIO, MidiIO *midiIO, QObject* parent) :
     //Init vu meter status
     vuMeterStatus = new bool*[8];
 
-    for(register unsigned int i = 0; i < 8; i++)
+	for(unsigned int i = 0; i < 8; i++)
         vuMeterStatus[i] = new bool[12];
 
-    for(register unsigned int x = 0; x < 8; x++)
+	for(unsigned int x = 0; x < 8; x++)
     {
-        for(register unsigned int y = 0; y < 12; y++)
+		for(unsigned int y = 0; y < 12; y++)
             vuMeterStatus[x][y] = false;
     }
 
@@ -46,7 +46,7 @@ Translator::Translator(OscIO *oscIO, MidiIO *midiIO, QObject* parent) :
 Translator::~Translator()
 {
     //Deleting vu meter status
-    for(register unsigned int i = 0; i < 8; i++)
+	for(unsigned int i = 0; i < 8; i++)
         delete[] vuMeterStatus[i];
 
     delete[] vuMeterStatus;
@@ -899,7 +899,7 @@ void Translator::processVuMeter(int chan, int value)
 {
     bool* tabVuOld = vuMeterStatus[chan];
 
-    for(register int i = 0; i < 12; i++)
+	for(int i = 0; i < 12; i++)
     {
         bool status = (value >= i+1);
         if(tabVuOld[i] != status)
