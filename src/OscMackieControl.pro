@@ -11,46 +11,55 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = OscMackieControl
 TEMPLATE = app
 
-osx:   DEFINES += __MACOSX_CORE__
-win32: DEFINES += __WINDOWS_MM__
-
 CONFIG(debug, debug|release) {
-    DESTDIR = $$PWD/../bin/debug
+    DESTDIR = ../build/debug
 }
 CONFIG(release, debug|release) {
-    DESTDIR = $$PWD/../bin/release
+    DESTDIR = ../build/release
 }
+
+MOC_DIR = ../tmp/moc
+UI_DIR = ../tmp/ui
+RCC_DIR = ../tmp/rcc
+OBJECTS_DIR = ../tmp/obj
+
+LIBDIR = ../thirdParty/
+OSCDIR = $$LIBDIR/libosc
+MIDIDIR = $$LIBDIR/librtmidi
 
 SOURCES  += main.cpp\
             Widget.cpp \
-            RtMidi.cpp \
             MidiIO.cpp \
             OscIO.cpp \
             Translator.cpp
 
 HEADERS  += Widget.h \
             midiNote.h \
-            RtMidi.h \
             MidiIO.h \
             OscIO.h \
             Translator.h
 
 FORMS    += Widget.ui
 
-win32: LIBS += -L$$PWD/lib/win32 -losc
-win32: LIBS += -lwinmm
+win32: {
+    LIBS += -L$$OSCDIR/lib/win32 -losc
+    LIBS += -L$$MIDIDIR/lib/win32 -lrtmidi
+    RC_ICONS = ../graphical/icon.ico
 
-osx: LIBS += -L$$PWD/lib/osx -losc
-osx: LIBS += -framework CoreMIDI
-osx: LIBS += -framework CoreAudio
-osx: LIBS += -framework CoreFoundation
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote(Overlays.ini) $$quote($${DESTDIR})
+    QMAKE_POST_LINK += &&
+    QMAKE_POST_LINK += windeployqt $${DESTDIR}/$${TARGET}.exe -verbose=1 -libpath=$${OSCDIR}/lib/win32/ -libpath=$${MIDIDIR}/lib/win32/
+}
 
+osx: {
+    LIBS += -L$$OSCDIR/lib/osx -losc
+    LIBS += -L$$MIDIDIR/lib/osx -lrtmidi
+    ICON = ../graphical/icon.icns
 
-INCLUDEPATH += $$PWD/osc/.
-DEPENDPATH += $$PWD/osc/.
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote(Overlays.ini) $$quote($${DESTDIR}/$${TARGET}.app/Contents/MacOS)
+    QMAKE_POST_LINK += &&
+    QMAKE_POST_LINK += macdeployqt $${DESTDIR}/$${TARGET}.app -verbose=1 -libpath=$${OSCDIR}/lib/osx/ -libpath=$${MIDIDIR}/lib/osx/
+}
 
-INCLUDEPATH += $$PWD/tools/.
-DEPENDPATH += $$PWD/tools/.
-
-osx: ICON = icon.icns
-win32: RC_FILE = icon.rc
+INCLUDEPATH += $$OSCDIR/include
+INCLUDEPATH += $$MIDIDIR/include

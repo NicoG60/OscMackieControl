@@ -2,285 +2,279 @@
 
 #include "MidiIO.h"
 
+MidiIO* MidiIO::_instance = nullptr;
+
 MidiIO::MidiIO(QObject* parent) :
-    QObject(parent),
-    midiIn(new RtMidiIn()),
-    midiOut(new RtMidiOut()),
-    inPort(0),
-    outPort(0),
-    timer(new QTimer(this))
+	QObject(parent),
+	_midiIn(new RtMidiIn()),
+	_midiOut(new RtMidiOut()),
+	_inPort(0),
+	_outPort(0)
 {
-    connect(timer, SIGNAL(timeout()), this, SLOT(readMidiInput()));
-    timer->start(0);
+	_midiIn->ignoreTypes(false, false, false);
+	_midiIn->setCallback(&MidiIO::readMidiInput, static_cast<void*>(this));
 }
 
 MidiIO::~MidiIO()
 {
-    midiIn->closePort();
-    midiOut->closePort();
+	_midiIn->closePort();
+	_midiOut->closePort();
 
-    timer->stop();
-
-    delete midiIn;
-    delete midiOut;
+	delete _midiIn;
+	delete _midiOut;
 }
+
+MidiIO* MidiIO::instance()
+{
+	if(!_instance)
+		_instance = new MidiIO();
+
+	return _instance;
+}
+
 
 QStringList MidiIO::getAvailableInputPort()
 {
-    QStringList l;
-
-    int nPort = midiIn->getPortCount();
-
-	for(int i = 0; i < nPort; i++)
-        l.append(QString::fromStdString(midiIn->getPortName(i)));
-
-    return l;
+	return getAvailablePort(_midiIn);
 }
 
 QStringList MidiIO::getAvailableOutputPort()
 {
-    QStringList l;
-
-    int nPort = midiOut->getPortCount();
-
-	for(int i = 0; i < nPort; i++)
-        l.append(QString::fromStdString(midiOut->getPortName(i)));
-
-    return l;
+	return getAvailablePort(_midiOut);
 }
+
+
 
 bool MidiIO::connectInputPort(uint index)
 {
-    midiIn->closePort();
-    bool r = index < midiIn->getPortCount();
-    if(r)
-    {
-        try
-        {
-            midiIn->openPort(index);
-        }
-        catch(RtMidiError &e)
-        {
-            r = false;
-            e.printMessage();
-        }
-
-        if(r)
-        {
-            inPort = index;
-            midiIn->ignoreTypes(false, false, false);
-        }
-    }
-
-    return r;
+	return connectPort(_midiIn, index, _inPort);
 }
 
 bool MidiIO::connectInputPort(QString name)
 {
-    QStringList l = getAvailableInputPort();
-    bool r = l.contains(name);
-    if(r)
-    {
-        r = connectInputPort(l.indexOf(name));
-    }
-
-    return r;
+	return connectPort(_midiIn, name, _inPort);
 }
 
 bool MidiIO::connectOutputPort(uint index)
 {
-    midiOut->closePort();
-    bool r = index < midiOut->getPortCount();
-    if(r)
-    {
-        try
-        {
-            midiOut->openPort(index);
-        }
-        catch(RtMidiError &e)
-        {
-            r = false;
-            e.printMessage();
-        }
-
-        if(r) outPort = index;
-    }
-
-    return r;
+	return connectPort(_midiOut, index, _outPort);
 }
 
 bool MidiIO::connectOutputPort(QString name)
 {
-    QStringList l = getAvailableInputPort();
-    bool r = l.contains(name);
-    if(r)
-    {
-        r = connectOutputPort(l.indexOf(name));
-    }
-
-    return r;
+	return connectPort(_midiOut, name, _outPort);
 }
+
+
 
 QString MidiIO::getStatus()
 {
-    QString status;
+	QString status;
 
-    //---- MIDI IN
-    status += "MIDI Input :\n";
-    status += "Status : ";
-    if(midiIn->isPortOpen())
-    {
-        status += "Ouvert\n";
-        status += "Port : " + QString::fromStdString(midiIn->getPortName(inPort)) + "\n";
-    }
-    else
-        status +="Fermé\n";
+	//---- MIDI IN
+	status += "MIDI Input :\n";
+	status += "Status : ";
+	if(_midiIn->isPortOpen())
+	{
+		status += "Opened\n";
+		status += "Port : " + QString::fromStdString(_midiIn->getPortName(_inPort)) + "\n";
+	}
+	else
+		status +="Closed\n";
 
-    status += "------------------------\n\n";
+	status += "------------------------\n\n";
 
-    //---- MIDI OUT
-    status += "MIDI Output :\n";
-    status += "Status : ";
-    if(midiOut->isPortOpen())
-    {
-        status += "Ouvert\n";
-        status += "Port : " + QString::fromStdString(midiOut->getPortName(outPort)) + "\n";
-    }
-    else
-        status +="Fermé\n";
+	//---- MIDI OUT
+	status += "MIDI Output :\n";
+	status += "Status : ";
+	if(_midiOut->isPortOpen())
+	{
+		status += "Opened\n";
+		status += "Port : " + QString::fromStdString(_midiOut->getPortName(_outPort)) + "\n";
+	}
+	else
+		status +="Closed\n";
 
-    status += "------------------------\n\n";
+	status += "------------------------\n\n";
 
-    return status;
+	return status;
 }
 
-void MidiIO::sendNoteOff(const int chan, const int note, const int vel)
-{
-    std::vector<unsigned char> msg;
-    msg.push_back(MIDI_STATUS_NOTEOFF | (chan & MIDI_CHANNEL_MASK));
-    msg.push_back(note);
-    msg.push_back(vel);
 
-    midiOut->sendMessage(&msg);
+
+void MidiIO::sendNoteOff(const uchar chan, const uchar note, const uchar vel)
+{
+	send(MIDI_STATUS_NOTEOFF, chan, note, vel);
 }
 
-void MidiIO::sendNoteOn(const int chan, const int note, const int vel)
+void MidiIO::sendNoteOn(const uchar chan, const uchar note, const uchar vel)
 {
-    std::vector<unsigned char> msg;
-    msg.push_back(MIDI_STATUS_NOTEON | (chan & MIDI_CHANNEL_MASK));
-    msg.push_back(note);
-    msg.push_back(vel);
-
-    midiOut->sendMessage(&msg);
+	send(MIDI_STATUS_NOTEON, chan, note, vel);
 }
 
-void MidiIO::sendKeyPressure(const int chan, const int note, const int vel)
+void MidiIO::sendKeyPressure(const uchar chan, const uchar note, const uchar vel)
 {
-    std::vector<unsigned char> msg;
-    msg.push_back(MIDI_STATUS_KEYPRESURE | (chan & MIDI_CHANNEL_MASK));
-    msg.push_back(note);
-    msg.push_back(vel);
-
-    midiOut->sendMessage(&msg);
+	send(MIDI_STATUS_KEYPRESURE, chan, note, vel);
 }
 
-void MidiIO::sendControler(const int chan, const int control, const int value)
+void MidiIO::sendControler(const uchar chan, const uchar control, const uchar value)
 {
-    std::vector<unsigned char> msg;
-    msg.push_back(MIDI_STATUS_CONTROLCHANGE | (chan & MIDI_CHANNEL_MASK));
-    msg.push_back(control);
-    msg.push_back(value);
-
-    midiOut->sendMessage(&msg);
+	send(MIDI_STATUS_CONTROLCHANGE, chan, control, value);
 }
 
-void MidiIO::sendProgram(const int chan, const int program)
+void MidiIO::sendProgram(const uchar chan, const uchar program)
 {
-    std::vector<unsigned char> msg;
-    msg.push_back(MIDI_STATUS_PROGRAMCHANGE | (chan & MIDI_CHANNEL_MASK));
-    msg.push_back(program);
-
-    midiOut->sendMessage(&msg);
+	send(MIDI_STATUS_PROGRAMCHANGE, chan, program);
 }
 
-void MidiIO::sendChannelPressure(const int chan, const int value)
+void MidiIO::sendChannelPressure(const uchar chan, const uchar value)
 {
-    std::vector<unsigned char> msg;
-    msg.push_back(MIDI_STATUS_CHANNELPRESSURE | (chan & MIDI_CHANNEL_MASK));
-    msg.push_back(value);
-
-    midiOut->sendMessage(&msg);
+	send(MIDI_STATUS_CHANNELPRESSURE, chan, value);
 }
 
-void MidiIO::sendPitchBend(const int chan, const int value)
+void MidiIO::sendPitchBend(const uchar chan, const int value)
 {
-    std::vector<unsigned char> msg;
-    msg.push_back(MIDI_STATUS_PITCHBEND | (chan & MIDI_CHANNEL_MASK));
-    msg.push_back(MIDI_LSB(value));
-    msg.push_back(MIDI_MSB(value));
-
-    midiOut->sendMessage(&msg);
+	send(MIDI_STATUS_PITCHBEND, chan, MIDI_LSB(value), MIDI_MSB(value));
 }
 
 void MidiIO::sendSysex(const QByteArray &data)
 {
-    std::vector<unsigned char> msg(data.begin(), data.end());
-    midiOut->sendMessage(&msg);
+	if(!_midiOut->isPortOpen())
+		return;
+
+	std::vector<unsigned char> msg(data.begin(), data.end());
+	_midiOut->sendMessage(&msg);
 }
 
-void MidiIO::readMidiInput()
+
+
+void MidiIO::readMidiInput(double timestamp, std::vector<unsigned char> *msg, void *data)
 {
-    std::vector<unsigned char> msg;
+	Q_UNUSED(timestamp)
 
-    midiIn->getMessage(&msg);
+	MidiIO* _this = static_cast<MidiIO*>(data);
 
-    if(msg.size() > 0)
-    {
-        int status = msg.at(0) & 0xf0;
+	if(msg->size() < 2)
+		return;
 
-        if(status == 0xF0)
-        {
-            QByteArray data(reinterpret_cast<const char*>(msg.data()), msg.size());
-            emit midiSysex(data);
-        }
-        else
-        {
-            int chan = msg.at(0) & 0x0f;
-            int data1 = msg.at(1);
-            int data2 = 0;
+	int status = msg->at(0) & 0xF0;
 
-            if(msg.size() == 3) data2 = msg.at(2);
+	if(status == 0xF0)
+	{
+		QByteArray data(reinterpret_cast<const char*>(msg->data()),
+						static_cast<int>(msg->size()));
+		_this->midiSysex(data);
+		return;
+	}
 
-            switch(status)
-            {
-            case MIDI_STATUS_NOTEON:
-                emit midiNoteOn(chan, data1, data2);
-                break;
+	uchar chan = msg->at(0) & 0x0F;
+	uchar data1 = msg->at(1);
+	uchar data2 = 0;
 
-            case MIDI_STATUS_NOTEOFF:
-                emit midiNoteOff(chan, data1, data2);
-                break;
+	if(msg->size() == 3)
+		data2 = msg->at(2);
 
-            case MIDI_STATUS_KEYPRESURE:
-                emit midiKeyPressure(chan, data1, data2);
-                break;
+	switch(status)
+	{
+	case MIDI_STATUS_NOTEON:
+		_this->midiNoteOn(chan, data1, data2);
+		break;
 
-            case MIDI_STATUS_CONTROLCHANGE:
-                emit midiControler(chan, data1, data2);
-                break;
+	case MIDI_STATUS_NOTEOFF:
+		_this->midiNoteOff(chan, data1, data2);
+		break;
 
-            case MIDI_STATUS_PROGRAMCHANGE:
-                emit midiProgram(chan, data1);
-                break;
+	case MIDI_STATUS_KEYPRESURE:
+		_this->midiKeyPressure(chan, data1, data2);
+		break;
 
-            case MIDI_STATUS_CHANNELPRESSURE:
-                emit midiChannelPressure(chan, data1);
-                break;
+	case MIDI_STATUS_CONTROLCHANGE:
+		_this->midiControler(chan, data1, data2);
+		break;
 
-            case MIDI_STATUS_PITCHBEND:
-                emit midiPitchBend(chan, data1+data2*0x80);
-                break;
-            }
-        }
-    }
+	case MIDI_STATUS_PROGRAMCHANGE:
+		_this->midiProgram(chan, data1);
+		break;
+
+	case MIDI_STATUS_CHANNELPRESSURE:
+		_this->midiChannelPressure(chan, data1);
+		break;
+
+	case MIDI_STATUS_PITCHBEND:
+		_this->midiPitchBend(chan, data1+data2*0x80);
+		break;
+	}
+}
+
+
+
+QStringList MidiIO::getAvailablePort(RtMidi* port)
+{
+	QStringList l;
+
+	uint nPort = port->getPortCount();
+
+	for(uint i = 0; i < nPort; i++)
+	{
+		QString name = QString::fromStdString(port->getPortName(i));
+		l.append(name);
+	}
+
+	return l;
+}
+
+bool MidiIO::connectPort(RtMidi* port, uint index, uint& intPort)
+{
+	port->closePort();
+	bool r = index < port->getPortCount();
+	if(r)
+	{
+		try
+		{
+			port->openPort(index);
+			intPort = index;
+		}
+		catch(RtMidiError &e)
+		{
+			r = false;
+			e.printMessage();
+		}
+	}
+
+	return r;
+}
+
+bool MidiIO::connectPort(RtMidi* port, QString name, uint& intPort)
+{
+	QStringList l = getAvailablePort(port);
+	bool r = l.contains(name);
+	if(r)
+		r = connectPort(port, static_cast<uint>(l.indexOf(name)), intPort);
+
+	return r;
+}
+
+void MidiIO::send(const uchar type, const uchar chan, const uchar data1)
+{
+	if(!_midiOut->isPortOpen())
+		return;
+
+	std::vector<unsigned char> msg;
+	msg.push_back(type | (chan & MIDI_CHANNEL_MASK));
+	msg.push_back(data1);
+
+	_midiOut->sendMessage(&msg);
+}
+
+void MidiIO::send(const uchar type, const uchar chan, const uchar data1, const uchar data2)
+{
+	if(!_midiOut->isPortOpen())
+		return;
+
+	std::vector<unsigned char> msg;
+	msg.push_back(type | (chan & MIDI_CHANNEL_MASK));
+	msg.push_back(data1);
+	msg.push_back(data2);
+
+	_midiOut->sendMessage(&msg);
 }

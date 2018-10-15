@@ -15,8 +15,8 @@
 #define MIDI_STATUS_MASK            0xf0
 #define MIDI_CHANNEL_MASK           0x0f
 
-#define MIDI_LSB(x) (x % 0x80)
-#define MIDI_MSB(x) (x / 0x80)
+#define MIDI_LSB(x) static_cast<uchar>(x % 0x80)
+#define MIDI_MSB(x) static_cast<uchar>(x / 0x80)
 
 #define Cm1  (0)
 #define Cdm1 (1)
