@@ -1,7 +1,5 @@
 # OscMackieControl
-
-The small software that map the midi implementation of Mackie Control to OSC protocol.
-It allows you to control any DAW with any OSC capable hardware.
+The small software that map the midi implementation of Mackie Control to OSC protocol. It allows you to control any DAW with any OSC capable hardware.
 
 ## Building
 It is a Qt5 project, just open and compile the project, use windeployqt or macdeployqt and copy the lib binary.
