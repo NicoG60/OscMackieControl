@@ -23,7 +23,7 @@ UI_DIR = ../tmp/ui
 RCC_DIR = ../tmp/rcc
 OBJECTS_DIR = ../tmp/obj
 
-LIBDIR = ../thirdParty/
+LIBDIR = ../thirdParty
 OSCDIR = $$LIBDIR/libosc
 MIDIDIR = $$LIBDIR/librtmidi
 
@@ -46,9 +46,13 @@ win32: {
     LIBS += -L$$MIDIDIR/lib/win32 -lrtmidi
     RC_ICONS = ../graphical/icon.ico
 
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote(Overlays.ini) $$quote($${DESTDIR})
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path(Overlays.ini)) $$quote($$shell_path($${DESTDIR}))
     QMAKE_POST_LINK += &&
-    QMAKE_POST_LINK += windeployqt $${DESTDIR}/$${TARGET}.exe -verbose=1 -libpath=$${OSCDIR}/lib/win32/ -libpath=$${MIDIDIR}/lib/win32/
+    QMAKE_POST_LINK += windeployqt $$quote($$shell_path($${DESTDIR}/$${TARGET}.exe)) -verbose=1
+    QMAKE_POST_LINK += &&
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($${OSCDIR}/lib/win32/osc.dll)) $$quote($$shell_path($${DESTDIR}))
+    QMAKE_POST_LINK += &&
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($${MIDIDIR}/lib/win32/librtmidi.dll)) $$quote($$shell_path($${DESTDIR}))
 }
 
 osx: {
