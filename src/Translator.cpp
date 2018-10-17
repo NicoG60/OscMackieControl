@@ -503,6 +503,8 @@ void Translator::readOSC(QByteArray raw)
 	ECHECK_ADDR("/Zoom",		zoom			(MIDI, bVal));
 	ECHECK_ADDR("/Left",		left			(MIDI, bVal));
 	ECHECK_ADDR("/Right",		right			(MIDI, bVal));
+
+	delete msg; //OscReader doesn't delete the message itself... strange
 }
 
 void Translator::resetFaderTouched()
