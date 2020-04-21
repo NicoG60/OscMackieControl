@@ -46,7 +46,7 @@ win32: {
     LIBS += -L$$MIDIDIR/lib/win32 -lrtmidi
     RC_ICONS = $$PWD/../graphical/icon.ico
 
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path(Overlays.ini)) $$quote($$shell_path($${DESTDIR}))
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($$PWD/Overlays.ini)) $$quote($$shell_path($${DESTDIR}))
     QMAKE_POST_LINK += &&
     QMAKE_POST_LINK += windeployqt $$quote($$shell_path($${DESTDIR}/$${TARGET}.exe)) -verbose=1
     QMAKE_POST_LINK += &&
@@ -60,7 +60,7 @@ osx: {
     LIBS += -L$$MIDIDIR/lib/osx -lrtmidi
     ICON = $$PWD/../graphical/icon.icns
 
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote(Overlays.ini) $$quote($${DESTDIR}/$${TARGET}.app/Contents/MacOS)
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/Overlays.ini) $$quote($${DESTDIR}/$${TARGET}.app/Contents/MacOS)
     QMAKE_POST_LINK += &&
     QMAKE_POST_LINK += macdeployqt $${DESTDIR}/$${TARGET}.app -verbose=1 -libpath=$${OSCDIR}/lib/osx/ -libpath=$${MIDIDIR}/lib/osx/
 }
