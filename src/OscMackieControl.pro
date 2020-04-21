@@ -12,18 +12,18 @@ TARGET = OscMackieControl
 TEMPLATE = app
 
 CONFIG(debug, debug|release) {
-    DESTDIR = ../build/debug
+    DESTDIR = $$PWD/../build/debug
 }
 CONFIG(release, debug|release) {
-    DESTDIR = ../build/release
+    DESTDIR = $$PWD/../build/release
 }
 
-MOC_DIR = ../tmp/moc
-UI_DIR = ../tmp/ui
-RCC_DIR = ../tmp/rcc
-OBJECTS_DIR = ../tmp/obj
+MOC_DIR = $$PWD/../tmp/moc
+UI_DIR = $$PWD/../tmp/ui
+RCC_DIR = $$PWD/../tmp/rcc
+OBJECTS_DIR = $$PWD/../tmp/obj
 
-LIBDIR = ../thirdParty
+LIBDIR = $$PWD/../thirdParty
 OSCDIR = $$LIBDIR/libosc
 MIDIDIR = $$LIBDIR/librtmidi
 
@@ -44,7 +44,7 @@ FORMS    += Widget.ui
 win32: {
     LIBS += -L$$OSCDIR/lib/win32 -losc
     LIBS += -L$$MIDIDIR/lib/win32 -lrtmidi
-    RC_ICONS = ../graphical/icon.ico
+    RC_ICONS = $$PWD/../graphical/icon.ico
 
     QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path(Overlays.ini)) $$quote($$shell_path($${DESTDIR}))
     QMAKE_POST_LINK += &&
@@ -58,7 +58,7 @@ win32: {
 osx: {
     LIBS += -L$$OSCDIR/lib/osx -losc
     LIBS += -L$$MIDIDIR/lib/osx -lrtmidi
-    ICON = ../graphical/icon.icns
+    ICON = $$PWD/../graphical/icon.icns
 
     QMAKE_POST_LINK += $$QMAKE_COPY $$quote(Overlays.ini) $$quote($${DESTDIR}/$${TARGET}.app/Contents/MacOS)
     QMAKE_POST_LINK += &&
