@@ -18,3 +18,4 @@ This program is not able to create its own virtual midi port to communicate with
 
 ## Note
 This app is developped to work with touchOSC app, the layout I made is on the repository. Actually, any OSC capable software or hardware can work, the implementation charts is on the wiki.
+ 
