@@ -13,17 +13,70 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: ilammy/msvc-dev-cmd@v1
-    - name: Install Qt
+
+
+
+    - name: get the repo
+      uses: actions/checkout@v2
+      width:
+        submodules: true
+
+    - name: get cmake
+      uses: lukka/get-cmake@latest   
+
+    - name: configure windows env
+      uses: ilammy/msvc-dev-cmd@v1
+      if: runner.os == 'Windows'
+
+    - name: install qt
       uses: jurplel/install-qt-action@v2.6.2
       with:
         modules: 'core widgets network'
+
+
+
+
+    - name: qmake osc
+      run: qmake OSC.pro
+      working-directory: thirdParty/osc-cpp-qt
+
+    - name: make osc
+      run: make
+      working-directory: thirdParty/osc-cpp-qt
+      if: runner.os == 'macOS'
+
+    - name: nmake osc
+      run: nmake.exe
+      working-directory: thirdParty/osc-cpp-qt
+      if: runner.os == 'Windows'
+
+
+
+
+    - name: cmake rtmidi
+      run: cmake .
+      working-directory: thirdParty/rtmidi
+
+    - name: make osc
+      run: make
+      working-directory: thirdParty/rtmidi
+      if: runner.os == 'macOS'
+
+    - name: nmake osc
+      run: nmake.exe
+      working-directory: thirdParty/rtmidi
+      if: runner.os == 'Windows'
+
+
+
     - name: qmake
       run: qmake src/
+
     - name: make
       if: runner.os == 'macOS'
       run: make
+
     - name: nmake
       if: runner.os == 'Windows'
       run: nmake.exe 
+      
