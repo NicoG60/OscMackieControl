@@ -18,7 +18,7 @@ jobs:
 
     - name: get the repo
       uses: actions/checkout@v2
-      width:
+      with:
         submodules: true
 
     - name: get cmake
