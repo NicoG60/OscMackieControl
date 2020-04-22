@@ -54,8 +54,14 @@ jobs:
 
 
     - name: cmake rtmidi
+      run: cmake .
+      working-directory: thirdParty/rtmidi
+      if: runner.os == 'macOS'
+
+    - name: cmake rtmidi
       run: cmake -G"NMake Makefiles" .
       working-directory: thirdParty/rtmidi
+      if: runner.os == 'Windows'
 
     - name: make rtmidi
       run: make
