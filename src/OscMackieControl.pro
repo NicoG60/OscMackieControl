@@ -53,7 +53,7 @@ win32: {
     QMAKE_POST_LINK += &&
     QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($${OSCDIR}/bin/release/osc.dll)) $$quote($$shell_path($${DESTDIR}))
     QMAKE_POST_LINK += &&
-    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($${MIDIDIR}/librtmidi.dll)) $$quote($$shell_path($${DESTDIR}))
+    QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$shell_path($${MIDIDIR}/rtmidi.dll)) $$quote($$shell_path($${DESTDIR}))
 }
 
 osx: {
