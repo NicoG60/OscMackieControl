@@ -1,3 +1,5 @@
+![C/C++ CI](https://github.com/NicoG60/OscMackieControl/workflows/C/C++%20CI/badge.svg?branch=master)
+
 # OscMackieControl
 The small software that map the midi implementation of Mackie Control to OSC protocol. It allows you to control any DAW with any OSC capable hardware.
 Compatible Mac/Win
