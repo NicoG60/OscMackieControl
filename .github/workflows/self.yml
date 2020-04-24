@@ -20,6 +20,7 @@ jobs:
     - name: install qt
       uses: jurplel/install-qt-action@v2.6.2
       with:
+        install-deps: false
         modules: 'core widgets network'
 
 
