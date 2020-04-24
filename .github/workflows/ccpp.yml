@@ -9,6 +9,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
+    - uses: AutoModality/action-clean@v1
     - name: get the repo
       uses: actions/checkout@v2
       with:
@@ -64,13 +65,11 @@ jobs:
     runs-on: macOS-latest
 
     steps:
+    - uses: AutoModality/action-clean@v1
     - name: get the repo
       uses: actions/checkout@v2
       with:
         submodules: true
-
-    # - name: get cmake
-    #   uses: lukka/get-cmake@latest   
 
     - name: install qt
       uses: jurplel/install-qt-action@v2.6.2
