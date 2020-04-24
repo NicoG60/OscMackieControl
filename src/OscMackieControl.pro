@@ -60,8 +60,8 @@ osx: {
     ICON = $$PWD/../graphical/icon.icns
 
     QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$PWD/Overlays.ini) $$quote($${DESTDIR}/$${TARGET}.app/Contents/MacOS)
-    QMAKE_POST_LINK += &&
-    QMAKE_POST_LINK += macdeployqt $${DESTDIR}/$${TARGET}.app -verbose=1 -libpath=$${OSCDIR}/bin/release/ -libpath=$${MIDIDIR}/lib/osx/
+    # QMAKE_POST_LINK += &&
+    # QMAKE_POST_LINK += macdeployqt $${DESTDIR}/$${TARGET}.app -verbose=1 -libpath=$${OSCDIR}/bin/release/ -libpath=$${MIDIDIR}/lib/osx/
 }
 
 INCLUDEPATH += $$OSCDIR
