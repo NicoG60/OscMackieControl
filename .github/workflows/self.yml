@@ -55,33 +55,6 @@ jobs:
       with:
         submodules: true 
 
-    - name: install qt
-      uses: jurplel/install-qt-action@v2.6.2
-      with:
-        install-deps: false
-        modules: 'core widgets network'
+    - name: put a file
+      run: touch poc.txt
 
-
-    - name: qmake osc
-      run: qmake OSC.pro
-      working-directory: thirdParty/osc-cpp-qt
-
-    - name: make osc
-      run: make
-      working-directory: thirdParty/osc-cpp-qt
-
-
-    - name: cmake rtmidi
-      run: cmake .
-      working-directory: thirdParty/rtmidi
-
-    - name: make rtmidi
-      run: make
-      working-directory: thirdParty/rtmidi
-
-
-    - name: qmake
-      run: qmake src/
-
-    - name: make
-      run: make
