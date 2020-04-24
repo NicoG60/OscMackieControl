@@ -57,3 +57,9 @@ jobs:
     - name: put a file
       run: touch poc.txt
 
+    - name: set env
+      run: export MY_VAR=1
+
+    - name: check end
+      run: echo ${MY_VAR}
+
