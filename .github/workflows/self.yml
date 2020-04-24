@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: Test Selfhost
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   test-self-host:
-    runs-on: [selfhost, linux, X64]
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
     - name: get the repo
