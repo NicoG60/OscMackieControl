@@ -14,8 +14,8 @@ jobs:
       with:
         submodules: true
 
-    - name: get cmake
-      uses: lukka/get-cmake@latest   
+    # - name: get cmake
+    #   uses: lukka/get-cmake@latest   
 
     - name: configure windows env
       uses: ilammy/msvc-dev-cmd@v1
@@ -69,8 +69,8 @@ jobs:
       with:
         submodules: true
 
-    - name: get cmake
-      uses: lukka/get-cmake@latest   
+    # - name: get cmake
+    #   uses: lukka/get-cmake@latest   
 
     - name: install qt
       uses: jurplel/install-qt-action@v2.6.2
