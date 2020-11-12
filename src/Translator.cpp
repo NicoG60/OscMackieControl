@@ -425,8 +425,13 @@ void Translator::readOSC(QByteArray raw)
 		return;
 
 	int chan = oscAddr.right(1).toInt(); //if any, reading channel id
-	int val = static_cast<int>(msg->getValue(0)->toFloat()); //Read osc value
-	bool bVal = val != 0; //The boolean version of val
+	int val = 0;
+	bool bVal = false;
+	
+	if(msg->getNumValues() > 0){
+		val = static_cast<int>(msg->getValue(0)->toFloat()); //Read osc value
+		bVal = val != 0; //The boolean version of val
+	}
 
 	//SPECIALS
 	 CHECK_ADDR("/Jog",			scrubScrolling	(val));
