@@ -4,6 +4,14 @@
 The small software that map the midi implementation of Mackie Control to OSC protocol. It allows you to control any DAW with any OSC capable hardware.
 Compatible Mac/Win
 
+
+
+# Version 2
+
+:tada: Version 2 is on its way! Check it out [here](https://github.com/NicoG60/OscMackieControl/tree/v2-dev)!
+
+
+
 ## Cloning & Building
 It is a Qt5 project.
 You can clone the repo and then :
@@ -20,4 +28,4 @@ This program is not able to create its own virtual midi port to communicate with
 
 ## Note
 This app is developped to work with touchOSC app, the layout I made is on the repository. Actually, any OSC capable software or hardware can work, the implementation charts is on the wiki.
- 
+
