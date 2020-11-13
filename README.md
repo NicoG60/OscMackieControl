@@ -6,7 +6,7 @@ The missing utility that maps Mackie Control to OSC. It allows you to control an
 | Some badges |                                                              |
 | ----------: | ------------------------------------------------------------ |
 |     Version | ![version](https://img.shields.io/badge/version-v2.0--dev-blue) |
-|       Build | ![C/C++ CI](https://github.com/NicoG60/OscMackieControl/workflows/C/C++%20CI/badge.svg?branch=master) |
+|       Build | ![C/C++ CI](https://github.com/NicoG60/OscMackieControl/workflows/C/C++%20CI/badge.svg?branch=v2-dev) |
 |     License | ![license](https://img.shields.io/github/license/NicoG60/OscMackieControl) |
 |    Platform | ![macOS](https://img.shields.io/badge/macOS-yes-green?logo=apple&logoColor=white)<br />![win10](https://img.shields.io/badge/Win 10-yes-green?logo=windows) |
 
@@ -14,18 +14,27 @@ The missing utility that maps Mackie Control to OSC. It allows you to control an
 
 The second version of the software is currently being developed. Here is a kinda roadmap of things to do and things that needs to be done.
 
-### Phase 1: Better OSC
+### :white_check_mark: Phase 1: Better OSC
 
 The previous software used [osc-cpp-qt](https://github.com/MugenSAS/osc-cpp-qt) to read and write OSC messages. It turned out that library has a couple of flows and is not maintained. Since there does not seem to be an OSC implementation based on Qt, I'll do my own.
 
 - [x] Basic OSC types (int32, float32, strings blobs)
+
 - [x] Extended OSC types (color, midi, int64, float64, etc...)
-- [ ] OSC arrays
+
+- [x] ~~OSC arrays~~ (Removed for v1)
+
 - [x] OSC Messages implementation
+
 - [x] OSC Bundle implementation
+
 - [x] OSC Interface to send and receive packets to and from the network
-- [ ] Tests
-- [ ] Release as an independent library
+
+- [x] Tests
+
+- [x] Release as an independent library
+
+  **The library is now available! Go check out [QOSC](https://github.com/NicoG60/QOSC)**
 
 ### Phase 2: Better MIDI
 
