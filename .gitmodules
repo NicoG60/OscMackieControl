@@ -1,0 +1,6 @@
+[submodule "third_party/QOsc"]
+	path = third_party/QOsc
+	url = https://github.com/NicoG60/QOsc.git
+[submodule "third_party/QMidi"]
+	path = third_party/QMidi
+	url = https://github.com/NicoG60/QMidi.git
