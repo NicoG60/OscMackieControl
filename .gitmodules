@@ -1,6 +1,0 @@
-[submodule "thirdParty/osc-cpp-qt"]
-	path = thirdParty/osc-cpp-qt
-	url = https://github.com/MugenSAS/osc-cpp-qt.git
-[submodule "thirdParty/rtmidi"]
-	path = thirdParty/rtmidi
-	url = https://github.com/thestk/rtmidi.git
