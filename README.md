@@ -41,7 +41,7 @@ The previous software used [osc-cpp-qt](https://github.com/MugenSAS/osc-cpp-qt) 
 The previous software relied on [RtMidi](https://www.music.mcgill.ca/~gary/rtmidi/) to provide MIDI communication. The question is wether keeping it or moving to [PortMidi](https://sourceforge.net/projects/portmedia/files/) which is also a good library. RtMidi is still maintained and the v4 has been release less than a yeah ago. PortMidi does not seem active anymore. I'll probably keep going with RtMidi.
 
 - [x] Choose a library to use
-- [ ] Implement an interface on top of it to make it easily usable with Qt
+- [x] Implement an interface on top of it to make it easily usable with Qt
 - [ ] **Find a way to create virtual midi ports and avoid the use of a third party software**
 - [ ] Test
 - [ ] Release as an independent library
