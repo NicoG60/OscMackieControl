@@ -47,8 +47,8 @@ Temporary Items
 .apdisk
 
 # Qt files
-*.pro.user.*
-*.qmake.*
+*.pro.user*
+*.qmake*
 **/build/*
 **/tmp/*
 Makefile
