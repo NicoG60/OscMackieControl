@@ -10,7 +10,7 @@ The missing utility that maps Mackie Control to OSC. It allows you to control an
 |     License | ![license](https://img.shields.io/github/license/NicoG60/OscMackieControl) |
 |    Platform | ![macOS](https://img.shields.io/badge/macOS-yes-green?logo=apple&logoColor=white)<br />![win10](https://img.shields.io/badge/Win 10-yes-green?logo=windows) |
 
-## Roadmap
+## Roadmap for v2
 
 The second version of the software is currently being developed. Here is a kinda roadmap of things to do and things that needs to be done.
 
@@ -32,19 +32,24 @@ The previous software used [osc-cpp-qt](https://github.com/MugenSAS/osc-cpp-qt) 
 
 - [x] Tests
 
+- [ ] Write documentation
+
 - [x] Release as an independent library
 
   **The library is now available! Go check out [QOsc](https://github.com/NicoG60/QOsc)**
 
-### Phase 2: Better MIDI
+### :arrows_counterclockwise: Phase 2: Better MIDI
 
 The previous software relied on [RtMidi](https://www.music.mcgill.ca/~gary/rtmidi/) to provide MIDI communication. The question is wether keeping it or moving to [PortMidi](https://sourceforge.net/projects/portmedia/files/) which is also a good library. RtMidi is still maintained and the v4 has been release less than a yeah ago. PortMidi does not seem active anymore. I'll probably keep going with RtMidi.
 
 - [x] Choose a library to use
 - [x] Implement an interface on top of it to make it easily usable with Qt
 - [ ] **Find a way to create virtual midi ports and avoid the use of a third party software**
+  This is almost done. CoreMidi accept the creation of virtual ports. I need to find my way to do the same on Windows. I'll probably ask permission to use Tobias Erichsen's [virtualMIDI SDK](http://www.tobias-erichsen.de/software/virtualmidi/virtualmidi-sdk.html)
 - [ ] Test
-- [ ] Release as an independent library
+- [ ] Write documentation
+- [x] Release as an independent library
+  **The library is now available! Go check out [QMidi](https://github.com/NicoG60/QMidi)**
 
 ### Phase 3: Better feature set
 
@@ -59,7 +64,7 @@ Here is a randomly ordered list of features that is worth considering and implem
 - [ ] Update the TouchOSC layout if needed
 - [ ] Provide an Open Stage Control layout
 
-### Phase 4: Better translator
+### :arrows_counterclockwise: ​Phase 4: Better translator
 
 The current translation component is a beast and doesn't feel right, nor it feels efficient. There is a lot of room here for better implementation and clever design that allow the above features to be easily integrated.
 
