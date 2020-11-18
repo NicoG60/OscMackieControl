@@ -1,13 +1,19 @@
-#include <QApplication>
+#include <QGuiApplication>
+#include "oscmackiecontrolapp.h"
 
-//#include "Widget.h"
+#define _STR(X) #X
+#define STRINGIFY(X) _STR(X)
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
+    QGuiApplication a(argc, argv);
+    QGuiApplication::setApplicationName("OscMackieControl");
+    QGuiApplication::setApplicationVersion(QStringLiteral("v%1 (%2)").arg(STRINGIFY(SOFT_VERSION)).arg(STRINGIFY(GIT_VERSION)));
 
-//    Widget w;
-//    w.show();
+    qDebug() << QOsc::displayVersion();
+    qDebug() << QMidi::displayVersion();
+
+    OscMackieControlApp _;
 
     return a.exec();
 }
