@@ -22,7 +22,7 @@ The previous software used [osc-cpp-qt](https://github.com/MugenSAS/osc-cpp-qt) 
 
 - [x] Extended OSC types (color, midi, int64, float64, etc...)
 
-- [x] ~~OSC arrays~~ (Removed for v1)
+- [x] ~~OSC arrays~~ (Spec'd out for the first iteration of that library as not needed by this software)
 
 - [x] OSC Messages implementation
 
