@@ -55,8 +55,8 @@ The previous software relied on [RtMidi](https://www.music.mcgill.ca/~gary/rtmid
 
 Here is a randomly ordered list of features that is worth considering and implementing
 
-- [ ] Mapping editor, being able to change the Mackie Control bit is sent to what OSC address.
-- [ ] Mapping options, being able to choose different way of interpreting OSC information. For example TouchOSC heavily relies on numbers even for button press that could be represented as a boolean value. Another example is the LCD display emulation. In the TouchOSC layout, each god damn character is a single element with its own OSC address. you may want to change that to a single string label (even though it will probably not align correctly).
+- [ ] Mapping editor, being able to change what Mackie Control bit is sent to what OSC address.
+- [ ] Mapping options, being able to choose different way of interpreting OSC information. For example TouchOSC heavily relies on numbers even for button press which could be represented as a boolean value. Another example is the LCD display emulation. In the TouchOSC layout, each god damn character is a single element with its own OSC address. you may want to change that to a single string label (even though it will probably not align correctly) or, as some other hardware does, a 6x2-character wide label per fader + 1 space character between each.
 - [ ] Mapping import/export
 - [ ] Overlay editor, let the user customise the labels on the touchOSC layout the same way Mackie Control Units have that kinda plastic overlay for different DAWs.
 - [ ] Provide an extended set of overlays.
