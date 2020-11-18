@@ -8,7 +8,7 @@ The missing utility that maps Mackie Control to OSC. It allows you to control an
 |     Version | ![version](https://img.shields.io/badge/version-v2.0--dev-blue) |
 |       Build | ![C/C++ CI](https://github.com/NicoG60/OscMackieControl/workflows/C/C++%20CI/badge.svg?branch=v2-dev) |
 |     License | ![license](https://img.shields.io/github/license/NicoG60/OscMackieControl) |
-|    Platform | ![macOS](https://img.shields.io/badge/macOS-yes-green?logo=apple&logoColor=white)<br />![win10](https://img.shields.io/badge/Win 10-yes-green?logo=windows) |
+|    Platform | ![macOS](https://img.shields.io/badge/macOS-yes-green?logo=apple&logoColor=white)<br />![win10](https://img.shields.io/badge/Win%2010-yes-green?logo=windows) |
 
 ## Roadmap for v2
 
