@@ -23,11 +23,13 @@ OBJECTS_DIR = tmp
 SOURCES += main.cpp \
     backend.cpp \
     iconmanager.cpp \
+    iomonitor.cpp \
     mapping.cpp \
     oscmackiecontrolapp.cpp
 HEADERS += \
     backend.h \
     iconmanager.h \
+    iomonitor.h \
     mapping.h \
     oscmackiecontrolapp.h
 

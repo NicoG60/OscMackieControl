@@ -53,21 +53,32 @@ void OscMackieControlApp::setupTray()
 
 void OscMackieControlApp::setupCommunication()
 {
-    osc = new QOscInterface(this);
+    timerCounter = new QTimer(this);
 
-    connect(osc, &QOscInterface::messageReceived, this, &OscMackieControlApp::oscIn);
-    connect(osc, &QOscInterface::messageSent, this, &OscMackieControlApp::oscOut);
+    osc = new QOscInterface(this);
+    oscMonitor = new IOMonitor(timerCounter, this);
+
+    connect(osc, &QOscInterface::messageReceived, oscMonitor, &IOMonitor::countIn);
+    connect(osc, &QOscInterface::messageSent, oscMonitor, &IOMonitor::countOut);
+
+    connect(osc, &QOscInterface::remoteAddrChanged, this, &OscMackieControlApp::oscStatusChanged);
+    connect(osc, &QOscInterface::localAddrChanged,  this, &OscMackieControlApp::oscStatusChanged);
+    connect(osc, &QOscInterface::remotePortChanged, this, &OscMackieControlApp::oscStatusChanged);
+    connect(osc, &QOscInterface::localPortChanged,  this, &OscMackieControlApp::oscStatusChanged);
 
     midi = new QMidi(QMidi::UnspecifiedApi, "OscMackieControl", this);
+    midiMonitor = new IOMonitor(timerCounter, this);
 
-    connect(midi, &QMidi::messageReceived, this, &OscMackieControlApp::midiIn);
-    connect(midi, &QMidi::messageSent, this, &OscMackieControlApp::midiOut);
+    connect(midi, &QMidi::messageReceived, midiMonitor, &IOMonitor::countIn);
+    connect(midi, &QMidi::messageSent, midiMonitor, &IOMonitor::countOut);
 
     backend = new Backend(osc, midi, this);
 
-    timerCounter.setInterval(1000);
-    connect(&timerCounter, &QTimer::timeout, this, &OscMackieControlApp::resetCounter);
-    timerCounter.start();
+    timerCounter->setInterval(1000);
+    connect(timerCounter, &QTimer::timeout, this, &OscMackieControlApp::resetCounter);
+    connect(timerCounter, &QTimer::timeout, this, &OscMackieControlApp::oscStatusChanged);
+    connect(timerCounter, &QTimer::timeout, this, &OscMackieControlApp::midiStatusChanged);
+    timerCounter->start();
 
 #ifdef Q_OS_MAC
     auto iface = midi->createVirtualInterface("OscMackieControl");
@@ -84,7 +95,7 @@ void OscMackieControlApp::setupUi()
 
     QQuickStyle::setStyle("Material");
 
-    qmlRegisterSingletonInstance("OscMackieControl.app", 1, 0, "OscMackieControlApp", this);
+    qmlRegisterSingletonInstance("OscMackieControl.app", 1, 0, "App", this);
     qmlRegisterSingletonInstance("OscMackieControl.osc", 1, 0, "QOsc", osc);
     qmlRegisterSingletonInstance("OscMackieControl.midi", 1, 0, "QMidi", midi);
     qmlRegisterSingletonInstance("OscMackieControl.backend", 1, 0, "Backend", backend);
@@ -202,20 +213,40 @@ void OscMackieControlApp::saveSettings(QString path)
     f.write(doc.toJson());
 }
 
+QVariantMap OscMackieControlApp::oscStatus() const
+{
+    return {
+        { "is_listening", osc->isListening() },
+        { "remote_addr",  osc->remoteAddr().toString() },
+        { "local_addr",   osc->localAddr().toString() },
+        { "remote_port",  osc->remotePort() },
+        { "local_port",   osc->localPort() },
+        { "last_in",      oscMonitor->lastCountIn() },
+        { "last_out",     oscMonitor->lastCountOut() },
+        { "avg_in",       oscMonitor->averageIn() },
+        { "avg_out",      oscMonitor->averageOut() }
+    };
+}
+
+QVariantMap OscMackieControlApp::midiStatus() const
+{
+    return {
+        { "is_open",      midi->isOpen() },
+        { "input_iface",  midi->inputInterface().name() },
+        { "output_iface", midi->outputInterface().name() },
+        { "last_in",      midiMonitor->lastCountIn() },
+        { "last_out",     midiMonitor->lastCountOut() },
+        { "avg_in",       midiMonitor->averageIn() },
+        { "avg_out",      midiMonitor->averageOut() }
+    };
+}
+
 void OscMackieControlApp::resetCounter()
 {
-    QString midiStatus = QStringLiteral("MIDI In %1 msg/s | Out %2 msg/s").arg(midiInCount).arg(midiOutCount);
-    QString oscStatus = QStringLiteral("OSC In %1 msg/s | Out %2 msg/s").arg(oscInCount).arg(oscOutCount);
-
-    emit midiStatusUpdate(midiStatus);
-    emit oscStatusUpdate(oscStatus);
+    QString midiStatus = QStringLiteral("MIDI In %1 msg/s | Out %2 msg/s").arg(midiMonitor->averageIn()).arg(midiMonitor->averageOut());
+    QString oscStatus = QStringLiteral("OSC In %1 msg/s | Out %2 msg/s").arg(oscMonitor->averageIn()).arg(oscMonitor->averageOut());
 
     midiAction->setText(midiStatus);
     oscAction->setText(oscStatus);
     menu->update();
-
-    midiInCount  = 0;
-    midiOutCount = 0;
-    oscInCount   = 0;
-    oscOutCount  = 0;
 }

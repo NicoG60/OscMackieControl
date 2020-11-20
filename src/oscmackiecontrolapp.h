@@ -6,11 +6,16 @@
 #include <QMidiInterface>
 #include <QSystemTrayIcon>
 #include <QQmlApplicationEngine>
+
 #include "backend.h"
+#include "iomonitor.h"
 
 class OscMackieControlApp : public QObject
 {
     Q_OBJECT
+
+    Q_PROPERTY(QVariantMap oscStatus READ oscStatus NOTIFY oscStatusChanged)
+    Q_PROPERTY(QVariantMap midiStatus READ midiStatus NOTIFY midiStatusChanged)
 
 public:
     explicit OscMackieControlApp(QObject *parent = nullptr);
@@ -27,16 +32,16 @@ public:
     QJsonObject dumpSettings();
     void saveSettings(QString path = {});
 
+    // OSC Monitor
+    QVariantMap oscStatus() const;
+    QVariantMap midiStatus() const;
+
 public slots:
-    inline void midiIn(const QByteArray&) { midiInCount++; }
-    inline void midiOut() { midiOutCount++; }
-    inline void oscIn(const QOscMessage&) { oscInCount++; }
-    inline void oscOut() { oscOutCount++; }
     void resetCounter();
 
 signals:
-    void midiStatusUpdate(const QString& str);
-    void oscStatusUpdate(const QString& str);
+    void oscStatusChanged();
+    void midiStatusChanged();
 
 public:
     QOscInterface*   osc     = nullptr;
@@ -49,11 +54,9 @@ public:
     QAction*         oscAction  = nullptr;
     QMenu*           menu    = nullptr;
 
-    QTimer  timerCounter;
-    quint64 midiInCount  = 0;
-    quint64 midiOutCount = 0;
-    quint64 oscInCount  = 0;
-    quint64 oscOutCount = 0;
+    QTimer*    timerCounter;
+    IOMonitor* oscMonitor;
+    IOMonitor* midiMonitor;
 };
 
 #endif // OSCMACKIECONTROLAPP_H

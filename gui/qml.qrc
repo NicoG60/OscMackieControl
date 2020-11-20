@@ -2,5 +2,20 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>TopBar.qml</file>
+        <file>icons/wifi.svg</file>
+        <file>icons/cog.svg</file>
+        <file>icons/map-signs.svg</file>
+        <file>icons/microchip.svg</file>
+        <file>icons/music.svg</file>
+        <file>icons/sliders-h.svg</file>
+        <file>icons/tools.svg</file>
+        <file>Status.qml</file>
+        <file>OscStatus.qml</file>
+        <file>IconLabel.qml</file>
+        <file>IOChart.qml</file>
+        <file>MidiStatus.qml</file>
+        <file>GenericStatus.qml</file>
+        <file>icons/eye.svg</file>
+        <file>Settings.qml</file>
     </qresource>
 </RCC>
