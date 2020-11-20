@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network quick
+QT       += core gui network quick quickcontrols2
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -46,6 +46,9 @@ win32: {
 osx: {
     ICON = $$PWD/../graphical/icon.icns
 }
+
+RESOURCES += \
+    ../gui/qml.qrc
 
 
 

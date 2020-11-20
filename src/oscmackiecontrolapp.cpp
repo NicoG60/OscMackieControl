@@ -2,6 +2,7 @@
 #include "iconmanager.h"
 
 #include <QApplication>
+#include <QQuickStyle>
 #include <QStandardPaths>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -15,6 +16,7 @@ OscMackieControlApp::OscMackieControlApp(QObject *parent) :
 {
     setupTray();
     setupCommunication();
+    setupUi();
 }
 
 OscMackieControlApp::~OscMackieControlApp()
@@ -76,6 +78,21 @@ void OscMackieControlApp::setupCommunication()
 #endif
 }
 
+void OscMackieControlApp::setupUi()
+{
+    frontend = new QQmlApplicationEngine(this);
+
+    QQuickStyle::setStyle("Material");
+
+    qmlRegisterSingletonInstance("OscMackieControl.app", 1, 0, "OscMackieControlApp", this);
+    qmlRegisterSingletonInstance("OscMackieControl.osc", 1, 0, "QOsc", osc);
+    qmlRegisterSingletonInstance("OscMackieControl.midi", 1, 0, "QMidi", midi);
+    qmlRegisterSingletonInstance("OscMackieControl.backend", 1, 0, "Backend", backend);
+    qmlRegisterSingletonInstance("OscMackieControl.ima", 1, 0, "IconManager", &_ima);
+
+    frontend->load(QUrl("qrc:/main.qml"));
+}
+
 QString OscMackieControlApp::settingsPath()
 {
     return QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/settings.json";
@@ -90,6 +107,9 @@ void OscMackieControlApp::loadSettings(QString path)
 {
     if(path.isEmpty())
         path = settingsPath();
+
+    if(!QFile::exists(path))
+        return;
 
     QFile f(settingsPath());
     if(!f.open(QFile::ReadOnly))

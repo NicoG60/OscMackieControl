@@ -5,17 +5,20 @@
 #include <QAction>
 #include <QMidiInterface>
 #include <QSystemTrayIcon>
+#include <QQmlApplicationEngine>
 #include "backend.h"
 
 class OscMackieControlApp : public QObject
 {
     Q_OBJECT
+
 public:
     explicit OscMackieControlApp(QObject *parent = nullptr);
     ~OscMackieControlApp();
 
     void setupTray();
     void setupCommunication();
+    void setupUi();
 
     QString settingsPath();
     bool hasSettings();
@@ -38,7 +41,9 @@ signals:
 public:
     QOscInterface*   osc     = nullptr;
     QMidi*           midi    = nullptr;
-    Backend*         backend = nullptr;
+
+    Backend*               backend  = nullptr;
+    QQmlApplicationEngine* frontend = nullptr;
 
     QAction*         midiAction = nullptr;
     QAction*         oscAction  = nullptr;

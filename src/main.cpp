@@ -1,4 +1,4 @@
-#include <QGuiApplication>
+#include <QApplication>
 #include "oscmackiecontrolapp.h"
 
 #define _STR(X) #X
@@ -6,14 +6,18 @@
 
 int main(int argc, char *argv[])
 {
-    QGuiApplication a(argc, argv);
-    QGuiApplication::setApplicationName("OscMackieControl");
-    QGuiApplication::setApplicationVersion(QStringLiteral("v%1 (%2)").arg(STRINGIFY(SOFT_VERSION)).arg(STRINGIFY(GIT_VERSION)));
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+
+    QApplication app(argc, argv);
+    QApplication::setApplicationName("OscMackieControl");
+    QApplication::setApplicationVersion(QStringLiteral("v%1 (%2)").arg(STRINGIFY(SOFT_VERSION)).arg(STRINGIFY(GIT_VERSION)));
+
+    //QApplication::setQuitOnLastWindowClosed(false);
 
     qDebug() << QOsc::displayVersion();
     qDebug() << QMidi::displayVersion();
 
     OscMackieControlApp _;
 
-    return a.exec();
+    return app.exec();
 }
