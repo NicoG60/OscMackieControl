@@ -21,10 +21,9 @@ public:
     };
 
 public:
-    explicit Backend(QOscInterface* osc, QMidi* midi, QObject *parent = nullptr);
+    explicit Backend(QOscInterface* osc, QMidi* midi, Mapping* mapping, QObject *parent = nullptr);
 
-    QJsonObject dumpMapping();
-    void loadMapping(const QJsonObject& obj);
+    void applyMapping();
 
 private slots: // Midi callbacks
     void midiNoteOn(quint8 chan, quint8 note, quint8 vel);
@@ -59,17 +58,16 @@ private slots: // ====== Helpers
     QString craftAddr(const QString& base, int id);
 
 private:
-    void applyMapping();
-    void applyButtonTrack(const Mapping::ButtonControl& btn, int i);
-    void applyButton(const Mapping::ButtonControl& btn);
+    void applyButtonTrack(const ButtonControl& btn, int i);
+    void applyButton(const ButtonControl& btn);
+    bool overlaps(int start, int end, int a, int b);
 
 signals:
 
 private:
     QOscInterface* _osc;
     QMidi*         _midi;
-
-    Mapping _mapping;
+    Mapping*       _mapping;
 
     QHash<quint8, QString> _noteButtonMap;
     QHash<QString, quint8> _oscButtonMap;

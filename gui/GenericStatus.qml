@@ -3,7 +3,7 @@ import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtQuick.Controls.Material 2.12
 
-GroupBox {
+Pane {
     id: control
 
     default property alias texts: grid.children
@@ -12,16 +12,10 @@ GroupBox {
     property alias avg_in: chart.avg_in
     property alias avg_out: chart.avg_out
     property bool  graph: true
+    property string title: ""
 
     Material.elevation: 2
     Material.background: Qt.lighter(parent.Material.background)
-
-    label: IconLabel {
-        id: label
-        iconColor: Material.color(Material.Green)
-        iconSize: 16
-        text: control.title
-    }
 
     states: State {
         name: "error"
@@ -35,6 +29,13 @@ GroupBox {
 
     ColumnLayout {
         anchors.fill: parent
+
+        IconLabel {
+                id: label
+                iconColor: Material.color(Material.Green)
+                iconSize: 16
+                text: control.title
+            }
 
         GridLayout {
             id: grid

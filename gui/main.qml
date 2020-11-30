@@ -8,12 +8,15 @@ ApplicationWindow {
     minimumWidth: 1024
     minimumHeight: bar.height + 768
 
+    maximumWidth: 1024
+    maximumHeight: bar.height + 768
+
     visible: true
     title: qsTr("Mackie Control to OSC Bridge")
 
     Material.theme: Material.System
-    Material.primary: Material.Blue
-    Material.accent: Material.BlueGrey
+    Material.primary: Material.BlueGrey
+    Material.accent: Material.Blue
 
     header: TopBar {
         id: bar

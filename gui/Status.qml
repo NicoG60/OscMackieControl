@@ -1,27 +1,19 @@
 import QtQuick 2.12
+import QtQuick.Layouts 1.11
 import OscMackieControl.app 1.0
 
 Item {
-    Flow {
+    RowLayout {
         id: column
         anchors.centerIn: parent
 
         spacing: 10
-        padding: 10
-
-        Transition {
-            id: anim
-            NumberAnimation { properties: "x,y"; duration: 400; easing.type: Easing.InOutCubic }
-        }
-
-        move: anim
-        populate: anim
 
         OscStatus {
             id: oscStatus
 
-            width: 400
-            height: 400
+            Layout.minimumWidth: 400
+            Layout.minimumHeight: 400
 
             is_listening: App.oscStatus.is_listening
             remote_addr:  App.oscStatus.remote_addr
@@ -35,8 +27,8 @@ Item {
         MidiStatus {
             id: midiStatus
 
-            width: 400
-            height: 400
+            Layout.minimumWidth: 400
+            Layout.minimumHeight: 400
 
             is_open:      App.midiStatus.is_open
             input_iface:  App.midiStatus.input_iface

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network quick quickcontrols2
+QT       += core gui network quick quickcontrols2 xml
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -25,19 +25,25 @@ SOURCES += main.cpp \
     iconmanager.cpp \
     iomonitor.cpp \
     mapping.cpp \
-    oscmackiecontrolapp.cpp
+    oscmackiecontrolapp.cpp \
+    touchoscbroadcaster.cpp
 HEADERS += \
     backend.h \
     iconmanager.h \
     iomonitor.h \
     mapping.h \
-    oscmackiecontrolapp.h
+    oscmackiecontrolapp.h \
+    touchoscbroadcaster.h
 
 LIBS += -L$$OUT_PWD/../third_party/QOsc/src/lib -lQOsc
 LIBS += -L$$OUT_PWD/../third_party/QMidi/src/lib -lQMidi
+LIBS += -L$$PWD/../third_party/quazip/build/quazip -lquazip1-qt5
+LIBS += -L$$PWD/../third_party/qmdnsengine/build/lib/ -lqmdnsengine
 
 INCLUDEPATH += $$PWD/../third_party/QOsc/include
 INCLUDEPATH += $$PWD/../third_party/QMidi/include
+INCLUDEPATH += $$PWD/../third_party/quazip/quazip
+INCLUDEPATH += $$PWD/../third_party/qmdnsengine/build/include
 
 include($$PWD/../third_party/QtAwesome/QtAwesome/QtAwesome.pri)
 

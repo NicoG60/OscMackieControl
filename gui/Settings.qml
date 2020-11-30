@@ -1,102 +1,124 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.11
-import QtQuick.Controls.Material 2.12
+import OscMackieControl.app 1.0
 
 Item {
-    Flow {
-        id: column
+    id: root
+
+    signal applied()
+
+    Connections{
+        target: root
+        function onVisibleChanged() { if(root.visible) root.hydrate()}
+    }
+
+    ColumnLayout {
         anchors.centerIn: parent
 
-        spacing: 10
-        padding: 10
+        RowLayout {
+            id: flow
 
-        Transition {
-            id: anim
-            NumberAnimation { properties: "x,y"; duration: 400; easing.type: Easing.InOutCubic }
-        }
+            spacing: 10
 
-        move: anim
-        populate: anim
+            OscSettings {
+                id: oscSettings
 
-        GenericStatus {
-            id: oscSettings
-
-            width: 400
-            height: 400
-
-            title: qsTr("OSC Settings")
-            icon:  '\uf1eb'
-
-            is_ok: true
-            graph: false
-
-            Label { text: qsTr("Controller IP:") }
-            TextField {
-                id: remoteAddr
-                Layout.alignment: Qt.AlignHCenter
-                placeholderText: qsTr("Text Field")
+                Layout.minimumWidth: 400
+                Layout.minimumHeight: 400
             }
 
-            Label { text: qsTr("Outgoing Port:") }
+            MidiSettings {
+                id: midiSettings
 
-            SpinBox {
-                id: remotePort
-                Layout.alignment: Qt.AlignHCenter
-                to: 65535
-                editable: true
-            }
-
-            Label { text: qsTr("Incoming Port:") }
-
-            SpinBox {
-                id: localPort
-                Layout.alignment: Qt.AlignHCenter
-                to: 65535
-                editable: true
+                Layout.minimumWidth: 400
+                Layout.minimumHeight: 400
             }
         }
 
-        GenericStatus {
-            id: midiSettings
+        RowLayout {
 
-            width: 400
-            height: 400
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter
 
-            title: qsTr("MIDI Settings")
-            icon:  '\uf001'
+            spacing: 10
 
-            is_ok: true
-            graph: false
+            Button {
+                id: btnCancel
+                Layout.alignment: Qt.AlignLeft
 
-            Label { text: qsTr("Midi Input") }
-
-            ComboBox {
-                id: midiIn
-                Layout.alignment: Qt.AlignHCenter
+                text: qsTr("Cancel")
+                onClicked: root.hydrate()
             }
 
-            Label { text: qsTr("Midi Output") }
-
-            ComboBox {
-                id: midiOut
-                Layout.alignment: Qt.AlignHCenter
+            Item {
+                Layout.fillWidth: true
             }
 
-            Frame {
-                Material.elevation: 2
-                Material.background: Material.color(Material.Green, Material.Shade200)
+            Button {
+                id: btnAssist
+                Layout.alignment: Qt.AlignHCenter
 
-                Layout.alignment: Qt.AlignCenter
-                Layout.columnSpan: 2
+                text: qsTr("TouchOSC Assitant")
+                onClicked: assistant.open()
+            }
 
-                Label {
-                    anchors.fill: parent
-                    color: Material.color(Material.Green, Material.Shade900)
-                    text: qsTr("You're all set! Your system supports virtual ports")
-                }
+            Item {
+                Layout.fillWidth: true
+            }
+
+            Button {
+                id: btnApply
+                Layout.alignment: Qt.AlignRight
+
+                text: qsTr("Apply")
+                highlighted: true
+
+                onClicked: root.update()
             }
         }
+    }
+
+    Assistant {
+        id: assistant
+
+        anchors.centerIn: parent
+
+        width: 700
+        height: 700
+
+        onClosed: root.hydrate()
+    }
+
+    function hydrate() {
+        let s = App.settings
+
+        oscSettings.remote_addr = s.remote_addr
+        oscSettings.remote_port = s.remote_port
+        oscSettings.local_port  = s.local_port
+
+        midiSettings.iface_in = s.iface_in
+        midiSettings.midi_in  = s.midi_in
+        midiSettings.iface_out = s.iface_out
+        midiSettings.midi_out  = s.midi_out
+        midiSettings.is_virtual = s.is_virtual
+    }
+
+    function update() {
+        let s = {
+            remote_addr: oscSettings.remote_addr,
+            remote_port: oscSettings.remote_port,
+            local_port:  oscSettings.local_port
+        }
+
+        if(!midiSettings.is_virtual)
+        {
+            s["midi_in"]  = midiSettings.midi_in
+            s["midi_out"] = midiSettings.midi_out
+        }
+
+        App.settings = s;
+        root.applied()
     }
 }
 

@@ -6,9 +6,11 @@
 #include <QMidiInterface>
 #include <QSystemTrayIcon>
 #include <QQmlApplicationEngine>
+#include <QXmlStreamWriter>
 
 #include "backend.h"
 #include "iomonitor.h"
+#include "touchoscbroadcaster.h"
 
 class OscMackieControlApp : public QObject
 {
@@ -16,6 +18,7 @@ class OscMackieControlApp : public QObject
 
     Q_PROPERTY(QVariantMap oscStatus READ oscStatus NOTIFY oscStatusChanged)
     Q_PROPERTY(QVariantMap midiStatus READ midiStatus NOTIFY midiStatusChanged)
+    Q_PROPERTY(QVariantMap settings READ settings WRITE setSettings)
 
 public:
     explicit OscMackieControlApp(QObject *parent = nullptr);
@@ -32,9 +35,13 @@ public:
     QJsonObject dumpSettings();
     void saveSettings(QString path = {});
 
-    // OSC Monitor
+    // Monitors
     QVariantMap oscStatus() const;
     QVariantMap midiStatus() const;
+
+    // Settings
+    QVariantMap settings() const;
+    void setSettings(const QVariantMap& s);
 
 public slots:
     void resetCounter();
@@ -47,6 +54,8 @@ public:
     QOscInterface*   osc     = nullptr;
     QMidi*           midi    = nullptr;
 
+    Mapping* mapping = nullptr;
+
     Backend*               backend  = nullptr;
     QQmlApplicationEngine* frontend = nullptr;
 
@@ -57,6 +66,8 @@ public:
     QTimer*    timerCounter;
     IOMonitor* oscMonitor;
     IOMonitor* midiMonitor;
+
+    TouchOSCBroadcaster* touchOSCBroadcast;
 };
 
 #endif // OSCMACKIECONTROLAPP_H

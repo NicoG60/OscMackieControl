@@ -17,5 +17,10 @@
         <file>GenericStatus.qml</file>
         <file>icons/eye.svg</file>
         <file>Settings.qml</file>
+        <file>OscSettings.qml</file>
+        <file>MidiSettings.qml</file>
+        <file>Assistant.qml</file>
+        <file>AwesomeRoundButton.qml</file>
+        <file>TouchOSCAnimation.qml</file>
     </qresource>
 </RCC>

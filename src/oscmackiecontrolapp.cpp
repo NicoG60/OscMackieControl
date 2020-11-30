@@ -10,6 +10,10 @@
 #include <QJsonValue>
 #include <QFile>
 #include <QMenu>
+#include <QDebug>
+#include <QDir>
+
+#include <quazip.h>
 
 OscMackieControlApp::OscMackieControlApp(QObject *parent) :
     QObject(parent)
@@ -56,6 +60,8 @@ void OscMackieControlApp::setupCommunication()
     timerCounter = new QTimer(this);
 
     osc = new QOscInterface(this);
+    osc->setLocalPort(8000);
+    osc->setRemotePort(9000);
     oscMonitor = new IOMonitor(timerCounter, this);
 
     connect(osc, &QOscInterface::messageReceived, oscMonitor, &IOMonitor::countIn);
@@ -67,12 +73,16 @@ void OscMackieControlApp::setupCommunication()
     connect(osc, &QOscInterface::localPortChanged,  this, &OscMackieControlApp::oscStatusChanged);
 
     midi = new QMidi(QMidi::UnspecifiedApi, "OscMackieControl", this);
+    midi->setIgnoreOptions(QMidi::IgnoreSense | QMidi::IgnoreTime);
     midiMonitor = new IOMonitor(timerCounter, this);
 
     connect(midi, &QMidi::messageReceived, midiMonitor, &IOMonitor::countIn);
     connect(midi, &QMidi::messageSent, midiMonitor, &IOMonitor::countOut);
 
-    backend = new Backend(osc, midi, this);
+    mapping = new Mapping(this);
+
+    backend = new Backend(osc, midi, mapping, this);
+    backend->applyMapping();
 
     timerCounter->setInterval(1000);
     connect(timerCounter, &QTimer::timeout, this, &OscMackieControlApp::resetCounter);
@@ -81,12 +91,12 @@ void OscMackieControlApp::setupCommunication()
     timerCounter->start();
 
 #ifdef Q_OS_MAC
-    auto iface = midi->createVirtualInterface("OscMackieControl");
-    midi->setInputInterface(iface);
-    midi->setOutputInterface(iface);
-
-    midi->open();
+    midi->openVirtual("OscMackieControl");
 #endif
+
+    loadSettings();
+
+    touchOSCBroadcast = new TouchOSCBroadcaster(mapping, this);
 }
 
 void OscMackieControlApp::setupUi()
@@ -106,7 +116,9 @@ void OscMackieControlApp::setupUi()
 
 QString OscMackieControlApp::settingsPath()
 {
-    return QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/settings.json";
+    QDir d(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
+    d.mkpath(d.absolutePath());
+    return  d.absoluteFilePath("settings.json");
 }
 
 bool OscMackieControlApp::hasSettings()
@@ -124,7 +136,10 @@ void OscMackieControlApp::loadSettings(QString path)
 
     QFile f(settingsPath());
     if(!f.open(QFile::ReadOnly))
+    {
+        qWarning() << f.errorString();
         return;
+    }
 
     auto doc = QJsonDocument::fromJson(f.readAll());
 
@@ -139,10 +154,22 @@ void OscMackieControlApp::applySettings(const QJsonObject& obj)
         osc->setRemoteAddr(QHostAddress(obj["remote_addr"].toString()));
 
     if(obj.contains("remote_port"))
-        osc->setRemotePort(obj["remote_port"].toInt());
+    {
+        auto p = obj["remote_port"];
+        if(p.isDouble())
+            osc->setRemotePort(p.toInt());
+        else if(p.isString())
+            osc->setRemotePort(p.toString().toInt());
+    }
 
     if(obj.contains("local_port"))
-        osc->setRemotePort(obj["local_port"].toInt());
+    {
+        auto p = obj["local_port"];
+        if(p.isDouble())
+            osc->setLocalPort(p.toInt());
+        else if(p.isString())
+            osc->setLocalPort(p.toString().toInt());
+    }
 
 #ifndef Q_OS_MAC
     if(midi->isOpen())
@@ -180,7 +207,10 @@ void OscMackieControlApp::applySettings(const QJsonObject& obj)
 #endif
 
     if(obj.contains("mapping"))
-        backend->loadMapping(obj["mapping"].toObject());
+    {
+        mapping->loadFromJson(obj["mapping"].toObject());
+        backend->applyMapping();
+    }
 }
 
 QJsonObject OscMackieControlApp::dumpSettings()
@@ -195,7 +225,7 @@ QJsonObject OscMackieControlApp::dumpSettings()
         { "midi_out", midi->outputInterface().name() },
 #endif
 
-        { "mapping", backend->dumpMapping() }
+        { "mapping", mapping->dumpJson() }
     };
 }
 
@@ -206,7 +236,10 @@ void OscMackieControlApp::saveSettings(QString path)
 
     QFile f(settingsPath());
     if(!f.open(QFile::WriteOnly))
+    {
+        qWarning() << path << f.errorString();
         return;
+    }
 
     QJsonDocument doc(dumpSettings());
 
@@ -239,6 +272,36 @@ QVariantMap OscMackieControlApp::midiStatus() const
         { "avg_in",       midiMonitor->averageIn() },
         { "avg_out",      midiMonitor->averageOut() }
     };
+}
+
+QVariantMap OscMackieControlApp::settings() const
+{
+    QVariantList ins, outs;
+
+    for(auto& i : midi->availableInputInterfaces())
+        ins << i.name();
+
+    for(auto& i : midi->availableOutputInterfaces())
+        outs << i.name();
+
+    return {
+        { "remote_addr", osc->remoteAddr().toString() },
+        { "remote_port", osc->remotePort() },
+        { "local_port",  osc->localPort() },
+        { "midi_in",     midi->inputInterface().name() },
+        { "midi_out",    midi->outputInterface().name() },
+#ifdef Q_OS_MAC
+        { "is_virtual", true },
+#endif
+        { "iface_in",    ins  },
+        { "iface_out",   outs }
+    };
+}
+
+void OscMackieControlApp::setSettings(const QVariantMap& s)
+{
+    applySettings(QJsonObject::fromVariantMap(s));
+    saveSettings();
 }
 
 void OscMackieControlApp::resetCounter()

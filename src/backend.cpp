@@ -1,9 +1,12 @@
 #include "backend.h"
 
-Backend::Backend(QOscInterface* osc, QMidi* midi, QObject *parent) :
+#include <QDebug>
+
+Backend::Backend(QOscInterface* osc, QMidi* midi, Mapping* mapping, QObject *parent) :
     QObject(parent),
     _osc(osc),
     _midi(midi),
+    _mapping(mapping),
     _lcd(56*2, ' ')
 {
     Q_ASSERT(_osc);
@@ -28,15 +31,23 @@ Backend::Backend(QOscInterface* osc, QMidi* midi, QObject *parent) :
             this, &Backend::oscReceived);
 }
 
-QJsonObject Backend::dumpMapping()
+void Backend::applyMapping()
 {
-    return _mapping.dumpJson();
-}
+    _noteButtonMap.clear();
+    _oscButtonMap.clear();
 
-void Backend::loadMapping(const QJsonObject &obj)
-{
-    _mapping.loadFromJson(obj);
-    applyMapping();
+    for(int i = 0; i < 8; i++)
+    {
+        applyButtonTrack(_mapping->REC, i);
+        applyButtonTrack(_mapping->MUTE, i);
+        applyButtonTrack(_mapping->SOLO, i);
+        applyButtonTrack(_mapping->SEL, i);
+        applyButtonTrack(_mapping->VPOTSelect, i);
+        applyButtonTrack(_mapping->Function, i);
+    }
+
+    for(auto& btn : _mapping->otherButtons)
+        applyButton(btn);
 }
 
 void Backend::midiNoteOn(quint8 chan, quint8 note, quint8 vel)
@@ -48,6 +59,9 @@ void Backend::midiNoteOn(quint8 chan, quint8 note, quint8 vel)
    auto it = _noteButtonMap.find(note);
 
    if(it == _noteButtonMap.end())
+       return;
+
+   if(it.value().isEmpty())
        return;
 
    sendButtonAction(it.value(), vel > 0);
@@ -76,7 +90,7 @@ void Backend::midiChannelPressure(quint8 chan, quint8 value)
 
 void Backend::midiPitchBend(quint8 chan, quint16 value)
 {
-    if(chan < 8)
+    if(chan <= 8)
         midiFader(chan, value); //Fader position
 }
 
@@ -90,12 +104,12 @@ void Backend::midiSysex(const QByteArray& data)
 
 void Backend::oscReceived(const QOscMessage& msg)
 {
-    QRegularExpression faderRegexp(_mapping.faderBaseAddr + "\\d");
-    QRegularExpression vpotRegexp(_mapping.VPOTSelect.addrIn + "\\d");
+    QRegularExpression faderRegexp(_mapping->faderBaseAddr + "\\d");
+    QRegularExpression vpotRegexp(_mapping->VPOTBaseAddr + "\\d");
 
     QString p = msg.pattern();
 
-    if(p == _mapping.jogBaseAddr)
+    if(p == _mapping->jogBaseAddr)
     {
         processScrub(msg.toInt());
         return;
@@ -103,24 +117,27 @@ void Backend::oscReceived(const QOscMessage& msg)
 
     if(faderRegexp.match(p).hasMatch())
     {
-        quint8 track = p.rightRef(1).toInt();
+        quint8 track = p.rightRef(1).toInt()-1;
         processFaderPos(track, msg.toFloat());
         return;
     }
 
     if(vpotRegexp.match(p).hasMatch())
     {
-        quint8 track = p.rightRef(1).toInt();
+        quint8 track = p.rightRef(1).toInt()-1;
         processVPotScroll(track, msg.toInt());
         return;
     }
+
+    if(msg.toInt() == 0)
+        return;
 
     auto it = _oscButtonMap.find(p);
 
     if(it == _oscButtonMap.end())
         return;
 
-    sendButtonAction(it.value(), msg.toInt() != 0);
+    sendButtonAction(it.value(), true);
 }
 
 void Backend::bangNote(quint8 chan, quint8 note, quint8 vel)
@@ -198,10 +215,10 @@ void Backend::processVPotScroll(quint8 track, int value)
 
 void Backend::processVPotLed(quint8 track, quint8 value)
 {
-    QString baseAddr = craftAddr(_mapping.vuMeterBaseAddr, track+1);
+    QString baseAddr = craftAddr(_mapping->VPOTLedBaseAddr, track+1);
     QOscBundle b;
 
-    b << QOscMessage(craftAddr(_mapping.vPotLedBaseAddr, track+1), (value & 0x40) ? 1 : 0);
+    b << QOscMessage(craftAddr(_mapping->VPOTSelect.ledAddr, track+1), (value & 0x40) ? 1 : 0);
 
     //Only one led mode
     if(value >= 0x00 && value <= 0x0B)
@@ -264,7 +281,8 @@ void Backend::processVPotLed(quint8 track, quint8 value)
         b << QOscMessage(craftAddr(baseAddr, 11), (value >= 0x36) ? 1 : 0);
     }
 
-    _osc->send(b);
+    for(auto& msg : b)
+        _osc->send(msg);
 }
 
 void Backend::processTimecode(quint8 chan, quint8 value)
@@ -281,14 +299,14 @@ void Backend::processTimecode(quint8 chan, quint8 value)
         if(dot) aff += ".";
     }
 
-    _osc->send(craftAddr(_mapping.timecodeBaseAddr, chan+1), aff);
+    _osc->send(craftAddr(_mapping->timecodeBaseAddr, chan+1), aff);
 }
 
 void Backend::processVuMeter(quint8 track, quint8 value)
 {
     auto& t = _tracks[track];
 
-    QString baseAddr = craftAddr(_mapping.vuMeterBaseAddr, track+1);
+    QString baseAddr = craftAddr(_mapping->vuMeterBaseAddr, track+1);
     QOscBundle b;
 
     for(int i = 0; i < 12; i++)
@@ -301,20 +319,21 @@ void Backend::processVuMeter(quint8 track, quint8 value)
         }
     }
 
-    if(!b.isEmpty())
-        _osc->send(b);
+    for(auto& msg : b)
+        _osc->send(msg);
 }
 
 void Backend::midiFader(quint8 track, quint16 value)
 {
-    _osc->send(craftAddr(_mapping.faderBaseAddr, track+1),
+    _osc->send(craftAddr(_mapping->faderBaseAddr, track+1),
                value / 16383.0f);
 }
 
 void Backend::sendLcdText(const QByteArray& data)
 {
-    QOscBundle b;
+    qDebug() << data;
 
+    QOscBundle bundle;
     auto it = data.begin();
 
     int start = *it;
@@ -325,17 +344,41 @@ void Backend::sendLcdText(const QByteArray& data)
     {
         char c = *it;
         _lcd[i] = c;
-        b << QOscMessage(craftAddr(_mapping.charBaseAddr, i+1), QString(1, c));
+        //bundle << QOscMessage(craftAddr(_mapping->charBaseAddr, i+1), QString(1, c));
     }
 
+    i--;
+
     // Send each line
-    if(start < 56)
-        b << QOscMessage(craftAddr(_mapping.lcdLineBaseAddr, 1), _lcd.left(56));
+//    if(start < 56)
+//        bundle << QOscMessage(craftAddr(_mapping->lcdLineBaseAddr, 1), _lcd.left(56));
 
-    if(i >= 56)
-        b << QOscMessage(craftAddr(_mapping.lcdLineBaseAddr, 2), _lcd.right(56));
+//    if(i >= 56)
+//        bundle << QOscMessage(craftAddr(_mapping->lcdLineBaseAddr, 2), _lcd.right(56));
 
-    // do something to send each track individually
+    // Send each track
+    for(int t = 1; t <= 8; t++)
+    {
+        auto addr = craftAddr(_mapping->trackDisplayBaseAddr, t);
+
+        int b = t*7;
+        int a = b-7;
+
+        int c = a+56;
+        int d = b+56;
+
+        if(overlaps(start, i, a, b))
+            bundle << QOscMessage(craftAddr(addr, 1), _lcd.mid(a, 7));
+
+        if(overlaps(start, i, c, d))
+            bundle << QOscMessage(craftAddr(addr, 2), _lcd.mid(c, 7));
+    }
+
+    for(auto& msg : bundle)
+    {
+        qDebug() << msg.pattern() << msg.toString();
+        _osc->send(msg);
+    }
 }
 
 QString Backend::craftAddr(const QString& base, int id)
@@ -344,33 +387,19 @@ QString Backend::craftAddr(const QString& base, int id)
     return tmp.arg(base).arg(id);
 }
 
-
-void Backend::applyMapping()
+void Backend::applyButtonTrack(const ButtonControl& btn, int i)
 {
-    for(int i = 0; i < 8; i++)
-    {
-        applyButtonTrack(_mapping.REC, i);
-        applyButtonTrack(_mapping.MUTE, i);
-        applyButtonTrack(_mapping.SOLO, i);
-        applyButtonTrack(_mapping.SEL, i);
-        applyButtonTrack(_mapping.VPOTSelect, i);
-        applyButtonTrack(_mapping.Function, i);
-    }
-
-    for(auto& btn : _mapping.otherButtons)
-        applyButton(btn);
-
-
+    _noteButtonMap.insert(btn.note + i, craftAddr(btn.ledAddr, i+1));
+    _oscButtonMap.insert(craftAddr(btn.btnAddr, i+1), btn.note + i);
 }
 
-void Backend::applyButtonTrack(const Mapping::ButtonControl& btn, int i)
+void Backend::applyButton(const ButtonControl& btn)
 {
-    _noteButtonMap.insert(btn.note + i, craftAddr(btn.addrOut, i+1));
-    _oscButtonMap.insert(craftAddr(btn.addrIn, i+1), btn.note + i);
+    _noteButtonMap.insert(btn.note, btn.ledAddr);
+    _oscButtonMap.insert(btn.btnAddr, btn.note);
 }
 
-void Backend::applyButton(const Mapping::ButtonControl& btn)
+bool Backend::overlaps(int start, int end, int a, int b)
 {
-    _noteButtonMap.insert(btn.note, btn.addrOut);
-    _oscButtonMap.insert(btn.addrIn, btn.note);
+    return start <= b && end >= a;
 }
