@@ -32,11 +32,8 @@ ApplicationWindow {
          Settings {
              id: settingsTab
          }
-         Item {
+         Mapping {
              id: activityTab
-             Text {
-                 text: qsTr("2")
-             }
          }
      }
 }

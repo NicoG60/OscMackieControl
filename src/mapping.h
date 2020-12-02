@@ -33,7 +33,6 @@ struct ButtonControl
     ButtonControl() = default;
 
     quint8  note;
-    QString name;
     QString btnAddr;
     QString ledAddr;
     QString label1Addr;
@@ -46,6 +45,8 @@ class Mapping : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(QVariantMap mapping READ mapping WRITE setMapping NOTIFY mappingChanged)
+
 public:
     explicit Mapping(QObject* parent = nullptr);
 
@@ -54,7 +55,7 @@ public:
     ButtonControl MUTE;
     ButtonControl SEL;
     ButtonControl VPOTSelect;
-    ButtonControl Function;
+    ButtonControl Functions;
 
     QMap<quint8, ButtonControl> otherButtons;
 
@@ -66,8 +67,8 @@ public:
     QString jogBaseAddr;
     QString assignmentAddr;
 
-    QString charBaseAddr;
-    QString trackDisplayBaseAddr;
+    QString lcdCharBaseAddr;
+    QString lcdTrackBaseAddr;
     QString lcdBaseAddr;
     QString lcdLineBaseAddr;
 
@@ -77,7 +78,7 @@ public:
     LabelControl lbAssigment;
     LabelControl lbFaderBanks;
     LabelControl lbGlobalView;
-    LabelControl lbFunction;
+    LabelControl lbFunctions;
     LabelControl lbModifiers;
     LabelControl lbUtilities;
     LabelControl lbAutomation;
@@ -87,9 +88,19 @@ public:
     void loadDefault();
     void loadFromJson(const QJsonObject& obj);
 
-    QJsonObject dumpJson();
+    QJsonObject dumpJson() const;
+
+    QVariantMap mapping() const;
+    void setMapping(const QVariantMap& m);
+
+signals:
+    void mappingChanged();
 
 public:
+    QJsonObject toJson(const ButtonControl& btn) const;
+    QJsonObject toJson(const LabelControl& lb) const;
+    ButtonControl toButton(const QJsonObject& obj) const;
+    LabelControl toLabel(const QJsonObject& obj) const;
     void exportTouchOSCLayout(QIODevice* dev, bool in_zip = false);
 
 private:

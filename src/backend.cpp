@@ -43,7 +43,7 @@ void Backend::applyMapping()
         applyButtonTrack(_mapping->SOLO, i);
         applyButtonTrack(_mapping->SEL, i);
         applyButtonTrack(_mapping->VPOTSelect, i);
-        applyButtonTrack(_mapping->Function, i);
+        applyButtonTrack(_mapping->Functions, i);
     }
 
     for(auto& btn : _mapping->otherButtons)
@@ -54,12 +54,18 @@ void Backend::midiNoteOn(quint8 chan, quint8 note, quint8 vel)
 {
     //Mackie Control use channel 0. If not, return
     if(chan > 0)
+    {
+        qWarning() << "Channel != 0 for midi note" << QStringLiteral("(C: %1, N: %2, V: %3)").arg(chan).arg(note).arg(vel);
         return;
+    }
 
-   auto it = _noteButtonMap.find(note);
+   const auto it = _noteButtonMap.find(note);
 
-   if(it == _noteButtonMap.end())
+   if(it == _noteButtonMap.cend())
+   {
+       qWarning() << "Button not found for midi note" << QStringLiteral("(C: %1, N: %2, V: %3)").arg(chan).arg(note).arg(vel);
        return;
+   }
 
    if(it.value().isEmpty())
        return;
@@ -70,16 +76,21 @@ void Backend::midiNoteOn(quint8 chan, quint8 note, quint8 vel)
 void Backend::midiControler(quint8 chan, quint8 control, uchar value)
 {
     Q_UNUSED(chan)
-    if(control >= 48 && control <= 55)		 //This case for vPot Leds
+    if(chan == 0 && control >= 48 && control <= 55)		 //This case for vPot Leds
         processVPotLed(control-48, value);
-    else if(control >= 64 && control <= 73)   //This case for timecode display
+    else if(chan == 15 && control >= 64 && control <= 73)   //This case for timecode display
         processTimecode(control-64, value);
+    else
+        qWarning() << "Unknown midi cc" << QStringLiteral("(C: %1, CC: %2, V: %3)").arg(chan).arg(control).arg(value);
 }
 
 void Backend::midiChannelPressure(quint8 chan, quint8 value)
 {
     if(chan > 0)
+    {
+        qWarning() << "Channel != 0 for channel pressure value:" << value;
         return;
+    }
 
     //Vu meter status
     quint8 track = (value & 0xF0) >> 4; //Channel id from 1 to 8
@@ -92,12 +103,17 @@ void Backend::midiPitchBend(quint8 chan, quint16 value)
 {
     if(chan <= 8)
         midiFader(chan, value); //Fader position
+    else
+        qWarning() << "Channel > 8 for pitch bend value:" << value;
 }
 
 void Backend::midiSysex(const QByteArray& data)
 {
     if(!data.startsWith("\x00\x00\x66\x14\x12"))
+    {
+        qWarning() << "Got unexpected system exclusive:" << data;
         return;
+    }
 
     sendLcdText(data.mid(5));
 }
@@ -331,8 +347,6 @@ void Backend::midiFader(quint8 track, quint16 value)
 
 void Backend::sendLcdText(const QByteArray& data)
 {
-    qDebug() << data;
-
     QOscBundle bundle;
     auto it = data.begin();
 
@@ -350,16 +364,16 @@ void Backend::sendLcdText(const QByteArray& data)
     i--;
 
     // Send each line
-//    if(start < 56)
-//        bundle << QOscMessage(craftAddr(_mapping->lcdLineBaseAddr, 1), _lcd.left(56));
+    if(start < 56)
+        bundle << QOscMessage(craftAddr(_mapping->lcdLineBaseAddr, 1), _lcd.left(56));
 
-//    if(i >= 56)
-//        bundle << QOscMessage(craftAddr(_mapping->lcdLineBaseAddr, 2), _lcd.right(56));
+    if(i >= 56)
+        bundle << QOscMessage(craftAddr(_mapping->lcdLineBaseAddr, 2), _lcd.right(56));
 
     // Send each track
     for(int t = 1; t <= 8; t++)
     {
-        auto addr = craftAddr(_mapping->trackDisplayBaseAddr, t);
+        auto addr = craftAddr(_mapping->lcdTrackBaseAddr, t);
 
         int b = t*7;
         int a = b-7;
@@ -375,15 +389,16 @@ void Backend::sendLcdText(const QByteArray& data)
     }
 
     for(auto& msg : bundle)
-    {
-        qDebug() << msg.pattern() << msg.toString();
         _osc->send(msg);
-    }
 }
 
 QString Backend::craftAddr(const QString& base, int id)
 {
     static QString tmp(QStringLiteral("%1%2"));
+
+    if(base.isEmpty())
+        return {};
+
     return tmp.arg(base).arg(id);
 }
 

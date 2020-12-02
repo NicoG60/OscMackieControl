@@ -35,7 +35,7 @@ In the rest of the document I will use the term *Note Bang* to describe that beh
 
 ### Channel
 
-Unless specified, all the messages are sent on midi channel 0.
+Unless specified, all the messages are sent on **midi channel 0**.
 
 ## Display Zone
 
@@ -62,7 +62,7 @@ Character codes are basic ASCII character. There is room for a character set ext
 
 ### Assignment display
 
-I've note been able to find what this one stands for yet. But stay tune, It'll probably come out someday!
+I've note been able to find what this one stands for yet. But stay tune, It'll probably come out someday! I suspect it to be controller by Control Change CC #74 and 75 (hex: 50, 51). Those are right after the Timecode. Dont know what the value means yet.
 
 ### SMPTE, BEATS, Rude Solo
 
@@ -109,7 +109,7 @@ Each track has a virtual pot. vPot are composed of:
 
 #### Rotating vPots
 
-The MCU sends *CC*s messages to notify the DAW about an encoder being rotated. from *CC* number 16 (hex: 10) for the first track to 23 (hex: 17) for the eighth track.
+The MCU sends *CC*s messages to notify the DAW about an encoder being rotated. from *CC* number 16 (hex: 10) for the first channel to 23 (hex: 17) for the eighth channel.
 
 The direction of rotation, and potentially the speed, are represented using the *Value* component of the *CC* as a *signed 7 bits integer*.
 
@@ -120,11 +120,11 @@ There is a good chance that using greater values than +1 and -1 encodes the spee
 
 #### Clicking vPots
 
-Using good ol' *Note Bang* from G#1 (32 | 20) for the first track to D#2 (39 | 27) for the eighth track.
+Using good ol' *Note Bang* from G#1 (32 | 20) for the first channel to D#2 (39 | 27) for the eighth channel.
 
 #### vPots Led Ring
 
-the DAW sends *CC*s messages to control the led ring. from *CC* number 48 (hex: 30) for the first track to *CC* number 55 (hex: 37) for the eighth track.
+the DAW sends *CC*s messages to control the led ring. from *CC* number 48 (hex: 30) for the first channel to *CC* number 55 (hex: 37) for the eighth channel.
 
 Again, the *Value* component is divided in a 4-bits control/value pair.
 
@@ -154,18 +154,18 @@ The following table shows the correspondance between *Mode*, *Value* and the led
 
 All those buttons follow the *Note Bang* behaviour. Here is a summary of what note they are bound to
 
-| Button | 1st track             | 8th track             |
+| Button | 1st channel           | 8th channel           |
 | ------ | --------------------- | --------------------- |
-| REC    | C-1 (0 | 0)  | G-1 (7 | 7)  |
-| SOLO   | G#-1 (8 | 8) | D#0 (15 | F) |
-| MUTE   | E0 (16 | 10) | B0 (20 | 17) |
-| SEL    | C1 (24 | 18) | G1 (31 | 1F) |
+| REC    | C-1 (0 | 0)  |
+| SOLO   | G#-1 (8 | 8) |
+| MUTE   | E0 (16 | 10) |
+| SEL    | C1 (24 | 18) |
 
 ### VU Meter
 
-This one is note shown on the illustration but exists in the standard. You can have one VU Meter per track. They are composed of 12 leds red to green. They are controller by the DAW using *Channel Pressure* MIDI message.
+This one is note shown on the illustration but exists in the standard. You can have one VU Meter per channel. They are composed of 12 leds red to green. They are controller by the DAW using *Channel Pressure* MIDI message.
 
-Again the *Value* component of the *Channel Pressure* is divided in a pair a 4-bits data. The most significant 4 bits represents the track ID from 0 to 7. The least significant 4 bits represents the state of the vu meter as such:
+Again the *Value* component of the *Channel Pressure* is divided in a pair a 4-bits data. The most significant 4 bits represents the channel ID from 0 to 7. The least significant 4 bits represents the state of the vu meter as such:
 
 | Value | Signal    | Leds         |
 | ----- | --------- | ------------ |
@@ -222,7 +222,9 @@ This works exactly as the vPot encoders works. It uses *CC* number 60.
 - +1: clockwise
 - -1: coutner-clockwise
 
-# Massive button and led summary table
+# Massive MIDI Note Mapping Summary
+
+All note mapping is on Channel 0 (the first one).
 
 |     Button / Led     | Note | Dec  | Hex  |
 | :------------------: | :--: | :--: | :--: |
@@ -345,15 +347,16 @@ This works exactly as the vPot encoders works. It uses *CC* number 60.
 |                      |      |      |      |
 |                      | F#7  | 102  |  66  |
 |                      |  G7  | 103  |  67  |
-|                      | G#7  | 104  |  68  |
-|                      |  A7  | 105  |  69  |
-|                      | A#7  | 106  |  6A  |
-|                      |  B7  | 107  |  6B  |
-|                      |  C8  | 108  |  6C  |
-|                      | C#8  | 109  |  6D  |
-|                      |  D8  | 110  |  6E  |
-|                      | D#8  | 111  |  6F  |
-|                      |  E8  | 112  |  70  |
+|                      |      |      |      |
+|   Fader 1 Touched    | G#7  | 104  |  68  |
+|   Fader 2 Touched    |  A7  | 105  |  69  |
+|   Fader 3 Touched    | A#7  | 106  |  6A  |
+|   Fader 4 Touched    |  B7  | 107  |  6B  |
+|   Fader 5 Touched    |  C8  | 108  |  6C  |
+|   Fader 6 Touched    | C#8  | 109  |  6D  |
+|   Fader 7 Touched    |  D8  | 110  |  6E  |
+|   Fader 8 Touched    | D#8  | 111  |  6F  |
+| Master Fader Touched |  E8  | 112  |  70  |
 |                      |      |      |      |
 |      SMPTE Led       |  F8  | 113  |  71  |
 |      BEATS Led       | F#8  | 114  |  72  |
@@ -364,7 +367,65 @@ This works exactly as the vPot encoders works. It uses *CC* number 60.
 |                      | A#8  | 118  |  76  |
 |                      |  B8  | 119  |  77  |
 
-# Quick reminder of MIDI messages format
+# Control Change Mapping Summary
+
+| Control                      | MIDI Channel | CC # | Hex  |
+| ---------------------------- | ------------ | ---- | ---- |
+| vPot 1 scroll                | 0            | 16   | 10   |
+| vPot 2 scroll                | 0            | 17   | 11   |
+| vPot 3 scroll                | 0            | 18   | 12   |
+| vPot 4 scroll                | 0            | 19   | 13   |
+| vPot 5 scroll                | 0            | 20   | 14   |
+| vPot 6 scroll                | 0            | 21   | 18   |
+| vPot 7 scroll                | 0            | 22   | 16   |
+| vPot 8 scroll                | 0            | 23   | 17   |
+|                              |              |      |      |
+| vPot 1 led ring              | 0            | 48   | 30   |
+| vPot 2 led ring              | 0            | 49   | 31   |
+| vPot 3 led ring              | 0            | 50   | 32   |
+| vPot 4 led ring              | 0            | 51   | 33   |
+| vPot 5 led ring              | 0            | 52   | 34   |
+| vPot 6 led ring              | 0            | 53   | 35   |
+| vPot 7 led ring              | 0            | 54   | 36   |
+| vPot 8 led ring              | 0            | 55   | 37   |
+|                              |              |      |      |
+| Jog wheel                    | 0            | 60   | 3C   |
+|                              |              |      |      |
+| Timecode digit 1             | 15           | 64   | 40   |
+| Timecode digit 2             | 15           | 65   | 41   |
+| Timecode digit 3             | 15           | 66   | 42   |
+| Timecode digit 4             | 15           | 67   | 43   |
+| Timecode digit 5             | 15           | 68   | 44   |
+| Timecode digit 6             | 15           | 69   | 45   |
+| Timecode digit 7             | 15           | 70   | 46   |
+| Timecode digit 8             | 15           | 71   | 47   |
+| Timecode digit 9             | 15           | 72   | 48   |
+| Timecode digit 10            | 15           | 73   | 49   |
+|                              |              |      |      |
+| Suspected Assignment digit 1 | 0            | 74   | 4A   |
+| Suspected Assignment digit 2 | 0            | 75   | 4B   |
+
+# Pitch Bend Mapping Summary
+
+| Control               | MIDI Channel |
+| --------------------- | ------------ |
+| Fader 1 position      | 0            |
+| Fader 2 position      | 1            |
+| Fader 3 position      | 2            |
+| Fader 4 position      | 3            |
+| Fader 5 position      | 4            |
+| Fader 6 position      | 5            |
+| Fader 7 position      | 6            |
+| Fader 8 position      | 7            |
+| Master Fader position | 8            |
+
+# Channel Pressure (After Touch) Mapping Summary
+
+| Control  | MIDI Channel |
+| -------- | ------------ |
+| Vu Meter | 0            |
+
+# Reminder of MIDI Messages Format
 
 | Message                       | Status Byte<br />D7..D0 | Data1 Byte<br />D7..D0 | Data2 Byte<br />D7..D0 |                                            |
 | ----------------------------- | ----------------------- | ---------------------- | ---------------------- | ------------------------------------------ |

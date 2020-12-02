@@ -19,8 +19,8 @@ void Mapping::loadDefault()
     MUTE       = createButton(QMidi::E_0,       "MUTE");
     SEL        = createButton(QMidi::C_1,       "SEL");
     VPOTSelect = createButton(QMidi::GSharp_1,  "VPOTSelect", " ");
-    Function   = createButton(QMidi::FSharp_3,  "F");
-    Function.ledAddr.clear();
+    Functions  = createButton(QMidi::FSharp_3,  "F");
+    Functions.ledAddr.clear();
 
     otherButtons.clear();
 
@@ -95,13 +95,13 @@ void Mapping::loadDefault()
     VPOTBaseAddr     = "/VPOT";
     VPOTLedBaseAddr  = "/VPOTRing";
     timecodeBaseAddr = "/Timecode";
-    vuMeterBaseAddr  = "/led";
+    vuMeterBaseAddr  = "/VuMeter";
     faderBaseAddr    = "/Fader";
     jogBaseAddr      = "/Jog";
-    charBaseAddr     = "/char";
-    trackDisplayBaseAddr = "/TrackDisplay";
-    lcdBaseAddr      = "/LCD";
-    lcdLineBaseAddr  = "/LCDLine";
+    lcdCharBaseAddr  = "/LcdChar";
+    lcdTrackBaseAddr = "/LcdTrack";
+    lcdBaseAddr      = "/Lcd";
+    lcdLineBaseAddr  = "/LcdLine";
 
     lbTrackNum   = { "/labelTrack",       "0" };
     lbVPOTAssign = { "/labelVPOTAssign",  "VPOT Assign" };
@@ -109,7 +109,7 @@ void Mapping::loadDefault()
     lbAssigment  = { "/labelAssignement", "Assignement" };
     lbFaderBanks = { "/labelFaderBanks",  "Fader Banks" };
     lbGlobalView = { "/labelGlobalView",  "Global View"};
-    lbFunction   = { "/labelFunction",    "Functions"};
+    lbFunctions  = { "/labelFunctions",   "Functions"};
     lbModifiers  = { "/labelModifiers",   "Modifiers"};
     lbUtilities  = { "/labelUtilities",   "Utilities" };
     lbAutomation = { "/labelAutomation",  "Automation"};
@@ -119,12 +119,160 @@ void Mapping::loadDefault()
 
 void Mapping::loadFromJson(const QJsonObject& obj)
 {
-    Q_UNUSED(obj);
+    if(obj.isEmpty())
+        return;
+
+    REC        = toButton(obj["rec"].toObject());
+    MUTE       = toButton(obj["mute"].toObject());
+    SOLO       = toButton(obj["solo"].toObject());
+    SEL        = toButton(obj["select"].toObject());
+    VPOTSelect = toButton(obj["vpot_select"].toObject());
+    Functions  = toButton(obj["functions"].toObject());
+
+    auto others = obj["other_buttons"].toObject();
+
+    for(auto it = others.begin(); it != others.end(); it++)
+        otherButtons[it.key().toInt()] = toButton(it->toObject());
+
+    VPOTBaseAddr     = obj["vpot"].toString();
+    VPOTLedBaseAddr  = obj["vpot_led"].toString();
+    timecodeBaseAddr = obj["timecode"].toString();
+    vuMeterBaseAddr  = obj["vu"].toString();
+    faderBaseAddr    = obj["fader"].toString();
+    jogBaseAddr      = obj["jog"].toString();
+    assignmentAddr   = obj["assignment"].toString();
+
+    lcdCharBaseAddr  = obj["lcd_char"].toString();
+    lcdTrackBaseAddr = obj["lcd_track"].toString();
+    lcdBaseAddr      = obj["lcd"].toString();
+    lcdLineBaseAddr  = obj["lcd_line"].toString();
+
+    lbTrackNum   = toLabel(obj["label_track_number"].toObject());
+    lbVPOTAssign = toLabel(obj["label_vpot_assign"].toObject());
+    lbDisplay    = toLabel(obj["label_display"].toObject());
+    lbAssigment  = toLabel(obj["label_assignment"].toObject());
+    lbFaderBanks = toLabel(obj["label_fader_banks"].toObject());
+    lbGlobalView = toLabel(obj["label_global_view"].toObject());
+    lbFunctions  = toLabel(obj["label_functions"].toObject());
+    lbModifiers  = toLabel(obj["label_modifiers"].toObject());
+    lbUtilities  = toLabel(obj["label_utilities"].toObject());
+    lbAutomation = toLabel(obj["label_automation"].toObject());
+    lbTransport  = toLabel(obj["label_transport"].toObject());
+    lbTimecode   = toLabel(obj["label_timecode"].toObject());
 }
 
-QJsonObject Mapping::dumpJson()
+QJsonObject Mapping::dumpJson() const
 {
-    return {};
+    QJsonObject r{
+        { "rec",         toJson(REC) },
+        { "mute",        toJson(MUTE) },
+        { "solo",        toJson(SOLO) },
+        { "select",      toJson(SEL) },
+        { "vpot_select", toJson(VPOTSelect) },
+        { "functions",   toJson(Functions) },
+    };
+
+    QJsonObject other;
+    for(auto& btn : otherButtons)
+        other.insert(QString::number(btn.note), toJson(btn));
+
+    r.insert("other_buttons", other);
+
+    r.insert("vpot",       VPOTBaseAddr);
+    r.insert("vpot_led",   VPOTLedBaseAddr);
+    r.insert("timecode",   timecodeBaseAddr);
+    r.insert("vu",         vuMeterBaseAddr);
+    r.insert("fader",      faderBaseAddr);
+    r.insert("jog",        jogBaseAddr);
+    r.insert("assignment", assignmentAddr);
+
+    r.insert("lcd_char",  lcdCharBaseAddr);
+    r.insert("lcd_track", lcdTrackBaseAddr);
+    r.insert("lcd",       lcdBaseAddr);
+    r.insert("lcd_line",  lcdLineBaseAddr);
+
+    r.insert("label_track_number", toJson(lbTrackNum));
+    r.insert("label_vpot_assign",  toJson(lbVPOTAssign));
+    r.insert("label_display",      toJson(lbDisplay));
+    r.insert("label_assignment",   toJson(lbAssigment));
+    r.insert("label_fader_banks",  toJson(lbFaderBanks));
+    r.insert("label_global_view",  toJson(lbGlobalView));
+    r.insert("label_functions",    toJson(lbFunctions));
+    r.insert("label_modifiers",    toJson(lbModifiers));
+    r.insert("label_utilities",    toJson(lbUtilities));
+    r.insert("label_automation",   toJson(lbAutomation));
+    r.insert("label_transport",    toJson(lbTransport));
+    r.insert("label_timecode",     toJson(lbTimecode));
+
+    return r;
+}
+
+QVariantMap Mapping::mapping() const
+{
+    return dumpJson().toVariantMap();
+}
+
+void Mapping::setMapping(const QVariantMap& m)
+{
+    loadFromJson(QJsonObject::fromVariantMap(m));
+}
+
+QJsonObject Mapping::toJson(const ButtonControl& btn) const
+{
+    return {
+        { "btn_addr", btn.btnAddr },
+        { "led_addr", btn.ledAddr },
+        { "label1_addr", btn.label1Addr },
+        { "label2_addr", btn.label2Addr },
+        { "default_label1", btn.defaultLabel1 },
+        { "default_label2", btn.defaultLabel2 }
+    };
+}
+
+QJsonObject Mapping::toJson(const LabelControl& lb) const
+{
+    return {
+        { "addr", lb.addr },
+        { "default_string", lb.defaultString }
+    };
+}
+
+ButtonControl Mapping::toButton(const QJsonObject& obj) const
+{
+    ButtonControl btn;
+
+    if(obj.contains("btn_addr"))
+        btn.btnAddr = obj["btn_addr"].toString();
+
+    if(obj.contains("led_addr"))
+        btn.ledAddr = obj["led_addr"].toString();
+
+    if(obj.contains("label1_addr"))
+        btn.label1Addr = obj["label1_addr"].toString();
+
+    if(obj.contains("label2_addr"))
+        btn.label2Addr = obj["label2_addr"].toString();
+
+    if(obj.contains("default_label1"))
+        btn.defaultLabel1 = obj["default_label1"].toString();
+
+    if(obj.contains("default_label2"))
+        btn.defaultLabel2 = obj["default_label2"].toString();
+
+    return btn;
+}
+
+LabelControl Mapping::toLabel(const QJsonObject& obj) const
+{
+    LabelControl lb;
+
+    if(obj.contains("addr"))
+        lb.addr = obj["addr"].toString();
+
+    if(obj.contains("default_string"))
+        lb.defaultString = obj["default_string"].toString();
+
+    return lb;
 }
 
 void Mapping::exportTouchOSCLayout(QIODevice* dev, bool in_zip)
@@ -205,7 +353,6 @@ ButtonControl Mapping::createButton(quint8 note, const QString& name, const QStr
     ButtonControl btn;
 
     btn.note = note;
-    btn.name = name;
     btn.btnAddr = QStringLiteral("/") + name;
     btn.ledAddr = QStringLiteral("/led") + name;
     btn.label1Addr = QStringLiteral("/label") + name;
@@ -364,8 +511,8 @@ void Mapping::exportTouchOSCLCD(QXmlStreamWriter* writer)
         auto idx = QString::number(t+1);
 
         exportTouchOSCLabel(writer, {x, 4,  100, 60}, "blue", " ", 18, "/backgroundLCD" + idx, true, true);
-        exportTouchOSCLabel(writer, {x, 8,  100, 30}, "blue", "       ", 18, trackDisplayBaseAddr + idx + "1", false, false);
-        exportTouchOSCLabel(writer, {x, 30, 100, 30}, "blue", "       ", 18, trackDisplayBaseAddr + idx + "2", false, false);
+        exportTouchOSCLabel(writer, {x, 8,  100, 30}, "blue", "       ", 18, lcdTrackBaseAddr + idx + "1", false, false);
+        exportTouchOSCLabel(writer, {x, 30, 100, 30}, "blue", "       ", 18, lcdTrackBaseAddr + idx + "2", false, false);
     }
     //*/
 }
@@ -482,12 +629,12 @@ void Mapping::exportTouchOSCGlobalView(QXmlStreamWriter* writer)
 
 void Mapping::exportTouchOSCFunctions(QXmlStreamWriter* writer)
 {
-    exportTouchOSCLabel(writer, {0, 124, 660, 20}, "gray", lbFunction.defaultString, 14, lbFunction.addr, true, true);
+    exportTouchOSCLabel(writer, {0, 124, 660, 20}, "gray", lbFunctions.defaultString, 14, lbFunctions.addr, true, true);
 
     for(int i = 1, x = 20; i <= 8; i++, x+=80)
     {
         auto n = QString::number(i);
-        auto btn = Function;
+        auto btn = Functions;
         btn.btnAddr += n;
         btn.label1Addr += n;
         btn.defaultLabel1 += n;

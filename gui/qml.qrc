@@ -22,5 +22,7 @@
         <file>Assistant.qml</file>
         <file>AwesomeRoundButton.qml</file>
         <file>TouchOSCAnimation.qml</file>
+        <file>Mapping.qml</file>
+        <file>MCU.qml</file>
     </qresource>
 </RCC>
