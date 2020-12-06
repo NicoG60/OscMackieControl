@@ -16,9 +16,12 @@ class OscMackieControlApp : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QVariantMap oscStatus READ oscStatus NOTIFY oscStatusChanged)
-    Q_PROPERTY(QVariantMap midiStatus READ midiStatus NOTIFY midiStatusChanged)
-    Q_PROPERTY(QVariantMap settings READ settings WRITE setSettings)
+    Q_PROPERTY(QOscInterface* osc MEMBER osc CONSTANT FINAL)
+    Q_PROPERTY(QMidi* midi MEMBER midi CONSTANT FINAL)
+    Q_PROPERTY(IOMonitor* oscMonitor MEMBER oscMonitor CONSTANT FINAL)
+    Q_PROPERTY(IOMonitor* midiMonitor MEMBER midiMonitor CONSTANT FINAL)
+    Q_PROPERTY(Backend* backend MEMBER backend CONSTANT FINAL)
+    Q_PROPERTY(Mapping* mapping MEMBER mapping CONSTANT FINAL)
 
 public:
     explicit OscMackieControlApp(QObject *parent = nullptr);
@@ -33,22 +36,10 @@ public:
     void loadSettings(QString path = {});
     void applySettings(const QJsonObject& obj);
     QJsonObject dumpSettings();
-    void saveSettings(QString path = {});
-
-    // Monitors
-    QVariantMap oscStatus() const;
-    QVariantMap midiStatus() const;
-
-    // Settings
-    QVariantMap settings() const;
-    void setSettings(const QVariantMap& s);
+    Q_INVOKABLE void saveSettings(QString path = {});
 
 public slots:
     void resetCounter();
-
-signals:
-    void oscStatusChanged();
-    void midiStatusChanged();
 
 public:
     QOscInterface*   osc     = nullptr;

@@ -23,6 +23,7 @@
         <file>AwesomeRoundButton.qml</file>
         <file>TouchOSCAnimation.qml</file>
         <file>Mapping.qml</file>
-        <file>MCU.qml</file>
+        <file>Mcu.qml</file>
+        <file>McuClickableArea.qml</file>
     </qresource>
 </RCC>

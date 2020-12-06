@@ -1,6 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.11
-import OscMackieControl.app 1.0
+import OscMackieControl 1.0
 
 Item {
     RowLayout {
@@ -15,13 +15,13 @@ Item {
             Layout.minimumWidth: 400
             Layout.minimumHeight: 400
 
-            is_listening: App.oscStatus.is_listening
-            remote_addr:  App.oscStatus.remote_addr
-            local_addr:   App.oscStatus.local_addr
-            remote_port:  App.oscStatus.remote_port
-            local_port:   App.oscStatus.local_port
-            avg_in:       App.oscStatus.avg_in
-            avg_out:      App.oscStatus.avg_out
+            is_listening: App.osc.isListening
+            remote_addr:  App.osc.remoteAddr
+            local_addr:   App.osc.localAddr
+            remote_port:  App.osc.remotePort
+            local_port:   App.osc.localPort
+            avg_in:       App.oscMonitor.averageIn
+            avg_out:      App.oscMonitor.averageOut
         }
 
         MidiStatus {
@@ -30,19 +30,25 @@ Item {
             Layout.minimumWidth: 400
             Layout.minimumHeight: 400
 
-            is_open:      App.midiStatus.is_open
-            input_iface:  App.midiStatus.input_iface
-            output_iface: App.midiStatus.output_iface
-            avg_in:       App.midiStatus.avg_in
-            avg_out:      App.midiStatus.avg_out
+            is_open:      App.midi.isOpen
+            input_iface:  App.midi.inputInterface.name
+            output_iface: App.midi.outputInterface.name
+            avg_in:       App.midiMonitor.averageIn
+            avg_out:      App.midiMonitor.averageOut
         }
     }
 
     Connections {
-        target: App
-        function onOscStatusChanged() {
-            oscStatus.push(App.oscStatus.last_in, App.oscStatus.last_out)
-            midiStatus.push(App.midiStatus.last_in, App.midiStatus.last_out)
+        target: App.oscMonitor
+        function onUpdated() {
+            oscStatus.push(App.oscMonitor.lastCountIn, App.oscMonitor.lastCountOut)
+        }
+    }
+
+    Connections {
+        target: App.midiMonitor
+        function onUpdated() {
+            midiStatus.push(App.midiMonitor.lastCountIn, App.midiMonitor.lastCountOut)
         }
     }
 }

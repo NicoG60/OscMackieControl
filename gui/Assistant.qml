@@ -2,7 +2,7 @@ import QtQuick 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtQuick.Controls.Material 2.12
-import OscMackieControl.app 1.0
+import OscMackieControl 1.0
 
 Popup {
     id: root
@@ -53,32 +53,26 @@ Popup {
         if(!root.visible)
             return
 
-        console.log("hydrate")
-
         let o = App.oscStatus
 
-        touchOsc.remote_addr = o.remote_addr
-        touchOsc.remote_port = o.remote_port
-        touchOsc.local_port  = o.local_port
-        touchOsc.local_addr  = o.local_addr
+        touchOsc.remote_addr = App.osc.remoteAddr
+        touchOsc.remote_port = App.osc.remotePort
+        touchOsc.local_port  = App.osc.localPort
+        touchOsc.local_addr  = App.osc.localAddr
         touchOsc.anim_start  = true
     }
 
     function apply() {
-        let s = {
-            remote_addr: touchOsc.remote_addr,
-            remote_port: touchOsc.remote_port,
-            local_port:  touchOsc.local_port
-        }
+        App.osc.remoteAddr = touchOsc.remote_addr
+        App.osc.remotePort = touchOsc.remote_port
+        App.osc.localPort  = touchOsc.local_port
 
-        App.settings = s
-
+        touchOsc.anim_start = false
         close();
     }
 
     function apply_remote_only() {
-        let s = { remote_addr: touchOsc.remote_addr }
-        App.settings = s
+        App.osc.remoteAddr = touchOsc.remote_addr
         hydrate();
     }
 }

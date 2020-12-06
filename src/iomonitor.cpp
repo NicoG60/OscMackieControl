@@ -44,6 +44,7 @@ void IOMonitor::timeout()
 
     pushAverageValue(_lastCountIn, _lastCountOut);
     computeAverage();
+    emit updated();
 }
 
 void IOMonitor::setupAverage()

@@ -1,7 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.11
-import OscMackieControl.app 1.0
+import OscMackieControl 1.0
 
 Item {
     id: root
@@ -93,31 +93,28 @@ Item {
     function hydrate() {
         let s = App.settings
 
-        oscSettings.remote_addr = s.remote_addr
-        oscSettings.remote_port = s.remote_port
-        oscSettings.local_port  = s.local_port
+        oscSettings.remote_addr = App.osc.remoteAddr
+        oscSettings.remote_port = App.osc.remotePort
+        oscSettings.local_port  = App.osc.localPort
 
-        midiSettings.iface_in = s.iface_in
-        midiSettings.midi_in  = s.midi_in
-        midiSettings.iface_out = s.iface_out
-        midiSettings.midi_out  = s.midi_out
-        midiSettings.is_virtual = s.is_virtual
+        midiSettings.iface_in = App.midi.availableInputInterfaces.map(i => i.name)
+        midiSettings.midi_in  = App.midi.inputInterface.name
+        midiSettings.iface_out = App.midi.availableOutputInterfaces.map(i => i.name)
+        midiSettings.midi_out  = App.midi.outputInterface.name
+        midiSettings.is_virtual = (Qt.platform.os === "osx")
     }
 
     function update() {
-        let s = {
-            remote_addr: oscSettings.remote_addr,
-            remote_port: oscSettings.remote_port,
-            local_port:  oscSettings.local_port
-        }
+        App.osc.remoteAddr = oscSettings.remote_addr
+        App.osc.remotePort = oscSettings.remote_port
+        App.osc.localPort =  oscSettings.local_port
 
         if(!midiSettings.is_virtual)
         {
-            s["midi_in"]  = midiSettings.midi_in
-            s["midi_out"] = midiSettings.midi_out
+            App.midi.inputInterface = App.midi.availableInputInterfaces.find(i => i.name === midiSettings.midi_in)
+            App.midi.outputInterface = App.midi.availableOutputInterfaces.find(i => i.name === midiSettings.midi_out)
         }
 
-        App.settings = s;
         root.applied()
     }
 }

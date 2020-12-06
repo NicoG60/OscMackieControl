@@ -67,11 +67,6 @@ void OscMackieControlApp::setupCommunication()
     connect(osc, &QOscInterface::messageReceived, oscMonitor, &IOMonitor::countIn);
     connect(osc, &QOscInterface::messageSent, oscMonitor, &IOMonitor::countOut);
 
-    connect(osc, &QOscInterface::remoteAddrChanged, this, &OscMackieControlApp::oscStatusChanged);
-    connect(osc, &QOscInterface::localAddrChanged,  this, &OscMackieControlApp::oscStatusChanged);
-    connect(osc, &QOscInterface::remotePortChanged, this, &OscMackieControlApp::oscStatusChanged);
-    connect(osc, &QOscInterface::localPortChanged,  this, &OscMackieControlApp::oscStatusChanged);
-
     midi = new QMidi(QMidi::UnspecifiedApi, "OscMackieControl", this);
     midi->setIgnoreOptions(QMidi::IgnoreSense | QMidi::IgnoreTime);
     midiMonitor = new IOMonitor(timerCounter, this);
@@ -86,8 +81,6 @@ void OscMackieControlApp::setupCommunication()
 
     timerCounter->setInterval(1000);
     connect(timerCounter, &QTimer::timeout, this, &OscMackieControlApp::resetCounter);
-    connect(timerCounter, &QTimer::timeout, this, &OscMackieControlApp::oscStatusChanged);
-    connect(timerCounter, &QTimer::timeout, this, &OscMackieControlApp::midiStatusChanged);
     timerCounter->start();
 
 #ifdef Q_OS_MAC
@@ -105,11 +98,16 @@ void OscMackieControlApp::setupUi()
 
     QQuickStyle::setStyle("Material");
 
-    qmlRegisterSingletonInstance("OscMackieControl.app", 1, 0, "App", this);
-    qmlRegisterSingletonInstance("OscMackieControl.osc", 1, 0, "QOsc", osc);
-    qmlRegisterSingletonInstance("OscMackieControl.midi", 1, 0, "QMidi", midi);
-    qmlRegisterSingletonInstance("OscMackieControl.backend", 1, 0, "Backend", backend);
-    qmlRegisterSingletonInstance("OscMackieControl.ima", 1, 0, "IconManager", &_ima);
+    const char* uri = "OscMackieControl";
+
+    qmlRegisterSingletonInstance(uri, 1, 0, "App", this);
+
+    qmlRegisterAnonymousType<QOscInterface> (uri, 1);
+    qmlRegisterAnonymousType<QMidi>         (uri, 1);
+    qmlRegisterAnonymousType<QMidiInterface>(uri, 1);
+    qmlRegisterAnonymousType<IOMonitor>     (uri, 1);
+    qmlRegisterAnonymousType<Backend>       (uri, 1);
+    qmlRegisterAnonymousType<Mapping>       (uri, 1);
 
     frontend->load(QUrl("qrc:/main.qml"));
 }
@@ -151,7 +149,7 @@ void OscMackieControlApp::loadSettings(QString path)
 void OscMackieControlApp::applySettings(const QJsonObject& obj)
 {
     if(obj.contains("remote_addr"))
-        osc->setRemoteAddr(QHostAddress(obj["remote_addr"].toString()));
+        osc->setRemoteAddr(obj["remote_addr"].toString());
 
     if(obj.contains("remote_port"))
     {
@@ -216,7 +214,7 @@ void OscMackieControlApp::applySettings(const QJsonObject& obj)
 QJsonObject OscMackieControlApp::dumpSettings()
 {
     return {
-        { "remote_addr", osc->remoteAddr().toString() },
+        { "remote_addr", osc->remoteAddr() },
         { "remote_port", osc->remotePort() },
         { "local_port", osc->localPort() },
 
@@ -244,64 +242,6 @@ void OscMackieControlApp::saveSettings(QString path)
     QJsonDocument doc(dumpSettings());
 
     f.write(doc.toJson());
-}
-
-QVariantMap OscMackieControlApp::oscStatus() const
-{
-    return {
-        { "is_listening", osc->isListening() },
-        { "remote_addr",  osc->remoteAddr().toString() },
-        { "local_addr",   osc->localAddr().toString() },
-        { "remote_port",  osc->remotePort() },
-        { "local_port",   osc->localPort() },
-        { "last_in",      oscMonitor->lastCountIn() },
-        { "last_out",     oscMonitor->lastCountOut() },
-        { "avg_in",       oscMonitor->averageIn() },
-        { "avg_out",      oscMonitor->averageOut() }
-    };
-}
-
-QVariantMap OscMackieControlApp::midiStatus() const
-{
-    return {
-        { "is_open",      midi->isOpen() },
-        { "input_iface",  midi->inputInterface().name() },
-        { "output_iface", midi->outputInterface().name() },
-        { "last_in",      midiMonitor->lastCountIn() },
-        { "last_out",     midiMonitor->lastCountOut() },
-        { "avg_in",       midiMonitor->averageIn() },
-        { "avg_out",      midiMonitor->averageOut() }
-    };
-}
-
-QVariantMap OscMackieControlApp::settings() const
-{
-    QVariantList ins, outs;
-
-    for(auto& i : midi->availableInputInterfaces())
-        ins << i.name();
-
-    for(auto& i : midi->availableOutputInterfaces())
-        outs << i.name();
-
-    return {
-        { "remote_addr", osc->remoteAddr().toString() },
-        { "remote_port", osc->remotePort() },
-        { "local_port",  osc->localPort() },
-        { "midi_in",     midi->inputInterface().name() },
-        { "midi_out",    midi->outputInterface().name() },
-#ifdef Q_OS_MAC
-        { "is_virtual", true },
-#endif
-        { "iface_in",    ins  },
-        { "iface_out",   outs }
-    };
-}
-
-void OscMackieControlApp::setSettings(const QVariantMap& s)
-{
-    applySettings(QJsonObject::fromVariantMap(s));
-    saveSettings();
 }
 
 void OscMackieControlApp::resetCounter()

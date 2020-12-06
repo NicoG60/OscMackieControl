@@ -36,6 +36,7 @@ signals:
     void averageInChanged();
     void averageOutChanged();
     void averageSizeChanged();
+    void updated();
 
 public slots:
     inline void countIn()  { _counterIn++;  }
