@@ -62,7 +62,7 @@ Character codes are basic ASCII character. There is room for a character set ext
 
 ### Assignment display
 
-I've note been able to find what this one stands for yet. But stay tune, It'll probably come out someday! I suspect it to be controller by Control Change CC #74 and 75 (hex: 50, 51). Those are right after the Timecode. Dont know what the value means yet.
+These are controlled with *CC* number 74 and 75 (hex: `4A`, `4B`), for more info on controlling these see [Timecode Display](#timecode-display).
 
 ### SMPTE, BEATS, Rude Solo
 
@@ -76,7 +76,7 @@ Those 3 leds are controlled by *Note Bangs* sent by the DAW.
 
 ### Timecode Display
 
-It si composed of 10 7-segments displays. They are controlled by *Control Change* message sent by the DAW. **Channel 15 (the last one) is used.** From right to left, *CC* number 64 (hex: 40) to 73 (hex: 49) as such:
+It si composed of 10 7-segments displays. They are controlled by *Control Change* message sent by the DAW. **Channel 15 (the last one) is used.** From right to left, *CC* number 64 (hex: `40`) to 73 (hex: `49`) as such:
 
 ![timecode](assets/timecode.png)
 
@@ -91,7 +91,7 @@ The *Value* of the CC control what to display, the 4 most significant bits are *
 - Bit 6 is the *Dot* on/off toggle. (each 7-seg display has a dot)
 - Bit 5 is always 1
 - Bit 4 is the General on/off toggle.
-- Bit 3 to 0 represents the number to display (from 0 to 9)
+- Bit 3 to 0 represents the ASCII character to display. The characters from `33` to `96` are supported. However if the character code is between `64` and `96`, subtract `64` from the from the character code to display it properly.
 
 ## Mixing zone
 
@@ -116,7 +116,7 @@ The direction of rotation, and potentially the speed, are represented using the 
 - Sending +1 (`0000001` in binary) means rotating clockwise
 - Sending -1 (`1000001` in binary) means rotating counter-clockwise
 
-There is a good chance that using greater values than +1 and -1 encodes the speed of rotation but I've not been able to test that statement.
+There is a good chance that using greater values than +1 and -1 encodes the speed of rotation but I'm not sure by how much.
 
 #### Clicking vPots
 
@@ -313,7 +313,7 @@ All note mapping is on Channel 0 (the first one).
 |       Control        |  C5  |  72  |  48  |
 |         Alt          | C#5  |  73  |  49  |
 |                      |      |      |      |
-|       Read/Off       |  D5  |  74  |  4A  |
+|       Read/Off        |  D5  |  74  |  4A  |
 |        Write         | D#5  |  75  |  4B  |
 |         Trim         |  E5  |  76  |  4C  |
 |        Touch         |  F5  |  77  |  4D  |
@@ -364,7 +364,7 @@ All note mapping is on Channel 0 (the first one).
 |                      |      |      |      |
 |                      | G#8  | 116  |  74  |
 |                      |  A8  | 117  |  75  |
-|                      | A#8  | 118  |  76  |
+|     Relay Click      | A#8  | 118  |  76  |
 |                      |  B8  | 119  |  77  |
 
 # Control Change Mapping Summary
