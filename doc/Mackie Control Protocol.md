@@ -91,7 +91,8 @@ The *Value* of the CC control what to display, the 4 most significant bits are *
 - Bit 6 is the *Dot* on/off toggle. (each 7-seg display has a dot)
 - Bit 5 is always 1
 - Bit 4 is the General on/off toggle.
-- Bit 3 to 0 represents the ASCII character to display. The characters from `33` to `96` are supported. However if the character code is between `64` and `96`, subtract `64` from the from the character code to display it properly.
+- Additionally, add (as in addition) the code of the ASCII character to display. The characters from `0x21` (33) to `0x60` (96) are supported. 
+    > Note: if the character code is between `0x40`(64) and `0x60` (96) , subtract `0x40` from the from the character code to display it properly.
 
 ## Mixing zone
 
