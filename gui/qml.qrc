@@ -24,6 +24,7 @@
         <file>TouchOSCAnimation.qml</file>
         <file>Mapping.qml</file>
         <file>Mcu.qml</file>
-        <file>McuClickableArea.qml</file>
+        <file>McuButton.qml</file>
+        <file>ButtonBreakdown.qml</file>
     </qresource>
 </RCC>

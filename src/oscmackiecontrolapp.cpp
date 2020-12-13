@@ -108,6 +108,7 @@ void OscMackieControlApp::setupUi()
     qmlRegisterAnonymousType<IOMonitor>     (uri, 1);
     qmlRegisterAnonymousType<Backend>       (uri, 1);
     qmlRegisterAnonymousType<Mapping>       (uri, 1);
+    qmlRegisterAnonymousType<MappingModel>  (uri, 1);
 
     frontend->load(QUrl("qrc:/main.qml"));
 }

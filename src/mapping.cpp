@@ -217,6 +217,11 @@ void Mapping::setMapping(const QVariantMap& m)
     loadFromJson(QJsonObject::fromVariantMap(m));
 }
 
+MappingModel* Mapping::createModel()
+{
+    return new MappingModel(this);
+}
+
 QJsonObject Mapping::toJson(const ButtonControl& btn) const
 {
     return {
@@ -906,4 +911,286 @@ void Mapping::writeBase64(QXmlStreamWriter* writer, const QString& name, const Q
 {
     auto data = value.toUtf8();
     writer->writeAttribute(name, data.toBase64());
+}
+
+
+
+// =============================================================================
+
+
+
+MappingModel::MappingModel(Mapping* m) :
+    QAbstractListModel(m),
+    _mapping(m)
+{
+
+}
+
+QHash<int, QByteArray> MappingModel::roleNames() const
+{
+    return {
+        { TypeRole,          "type"     },
+        { NameRole,          "name"     },
+        { HintRole,          "hint"     },
+        { BaseRole,          "base"     },
+        { ButtonAddressRole, "button"   },
+        { LedAddressRole,    "led"      },
+        { LabelAddressRole,  "label"    },
+        { Label2AddressRole, "label2"   },
+        { DefaultLabelRole,  "default"  },
+        { DefaultLabel2Role, "default2" }
+    };
+}
+
+int MappingModel::rowCount(const QModelIndex& index) const
+{
+    Q_UNUSED(index)
+    return _data.size();
+}
+
+QVariant MappingModel::data(const QModelIndex& index, int role) const
+{
+    if(!index.isValid())
+        return {};
+
+    int r = index.row();
+
+    if(r < 0 || r >= _data.size())
+        return {};
+
+    auto& d = _data[r];
+
+    switch(role)
+    {
+    case TypeRole:
+        return d.type;
+
+    case NameRole:
+        return d.name;
+
+    case HintRole:
+        return d.hint;
+
+    case BaseRole:
+        return d._base ? *d._base : QString();
+
+    case ButtonAddressRole:
+        return d._button ? d._button->btnAddr : QString();
+
+    case LedAddressRole:
+        return d._button ? d._button->ledAddr : QString();
+
+    case LabelAddressRole:
+        if(d._button)
+            return d._button->label1Addr;
+        else if(d._label)
+            return d._label->addr;
+        else
+            return {};
+
+    case Label2AddressRole:
+        return d._button ? d._button->label2Addr : QString();
+
+    case DefaultLabelRole:
+        if(d._button)
+            return d._button->defaultLabel1;
+        else if(d._label)
+            return d._label->defaultString;
+        else
+            return {};
+
+    case DefaultLabel2Role:
+        return d._button ? d._button->defaultLabel2 : QString();
+
+    default:
+        return {};
+    }
+}
+
+bool MappingModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+    if(!index.isValid())
+        return false;
+
+    int r = index.row();
+
+    if(r < 0 || r >= _data.size())
+        return {};
+
+    auto& d = _data[r];
+
+    switch(role)
+    {
+    case BaseRole:
+        if(d._base)
+        {
+            *d._base = value.toString();
+            return true;
+        }
+        else
+            return false;
+
+    case ButtonAddressRole:
+        if(d._button)
+        {
+            d._button->btnAddr = value.toString();
+            return true;
+        }
+        else
+            return false;
+
+    case LedAddressRole:
+        if(d._button)
+        {
+            d._button->ledAddr = value.toString();
+            return true;
+        }
+        else
+            return false;
+
+    case LabelAddressRole:
+        if(d._button)
+        {
+            d._button->label1Addr = value.toString();
+            return true;
+        }
+        else if(d._label)
+        {
+            d._label->addr = value.toString();
+            return true;
+        }
+        else
+            return false;
+
+    case Label2AddressRole:
+        if(d._button)
+        {
+            d._button->label2Addr = value.toString();
+            return true;
+        }
+        else
+            return false;
+
+    case DefaultLabelRole:
+        if(d._button)
+        {
+            d._button->defaultLabel1 = value.toString();
+            return true;
+        }
+        else if(d._label)
+        {
+            d._label->defaultString = value.toString();
+            return true;
+        }
+        else
+            return false;
+
+    case DefaultLabel2Role:
+        if(d._button)
+        {
+            d._button->defaultLabel2 = value.toString();
+            return true;
+        }
+        else
+            return false;
+
+    default:
+        return false;
+    }
+}
+
+Qt::ItemFlags MappingModel::flags(const QModelIndex& index) const
+{
+    Q_UNUSED(index)
+    return Qt::ItemIsEnabled | Qt::ItemIsEditable;
+}
+
+void MappingModel::loadLCD()
+{
+    beginResetModel();
+    _data.clear();
+
+    load("base", "LCD address", {}, &_mapping->lcdBaseAddr);
+    load("base", "LCD lines base address", "/<base_addr><line_num>", &_mapping->lcdLineBaseAddr);
+    load("base", "LCD tracks base address", "/<base_addr><track_num><line_num>", &_mapping->lcdTrackBaseAddr);
+    load("base", "LCD character base address", "/<base_addr><char_num>", &_mapping->lcdCharBaseAddr);
+
+    endResetModel();
+}
+
+void MappingModel::loadDisplays()
+{
+
+}
+
+void MappingModel::loadvPot()
+{
+
+}
+
+void MappingModel::loadButtons()
+{
+}
+
+void MappingModel::loadFaders()
+{
+    beginResetModel();
+    _data.clear();
+
+    load("base", "Faders base address", "/<base_addr><track_num>", &_mapping->faderBaseAddr);
+
+    endResetModel();
+}
+
+void MappingModel::loadAssignment()
+{
+
+}
+
+void MappingModel::loadGlobal()
+{
+
+}
+
+void MappingModel::loadAutomation()
+{
+
+}
+
+void MappingModel::loadTransport()
+{
+
+}
+
+void MappingModel::load(const QString& type, const QString& name, const QString& hint, QString* base)
+{
+    Data d;
+    d.type = type;
+    d.name = name;
+    d.hint = hint;
+    d._base = base;
+
+    _data << d;
+}
+
+void MappingModel::load(const QString& type, const QString& name, const QString& hint, ButtonControl* btn)
+{
+    Data d;
+    d.type = type;
+    d.name = name;
+    d.hint = hint;
+    d._button = btn;
+
+    _data << d;
+}
+
+void MappingModel::load(const QString& type, const QString& name, const QString& hint, LabelControl* lb)
+{
+    Data d;
+    d.type = type;
+    d.name = name;
+    d.hint = hint;
+    d._label = lb;
+
+    _data << d;
 }

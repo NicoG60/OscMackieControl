@@ -7,6 +7,7 @@
 #include <QJsonObject>
 #include <QXmlStreamWriter>
 #include <QRect>
+#include <QAbstractListModel>
 
 struct TouchOscButtonOption
 {
@@ -41,6 +42,7 @@ struct ButtonControl
     QString defaultLabel2;
 };
 
+class MappingModel;
 class Mapping : public QObject
 {
     Q_OBJECT
@@ -93,6 +95,8 @@ public:
     QVariantMap mapping() const;
     void setMapping(const QVariantMap& m);
 
+    Q_INVOKABLE MappingModel* createModel();
+
 signals:
     void mappingChanged();
 
@@ -133,6 +137,68 @@ private:
     void exportTouchOSCGenericControl(QXmlStreamWriter* writer, const QString& type, const QRect& rect, const QString& color, const QString& addr);
     void writeStartPage(QXmlStreamWriter* writer, const QString& name);
     void writeBase64(QXmlStreamWriter* writer, const QString& name, const QString& value);
+};
+
+class MappingModel : public QAbstractListModel
+{
+    Q_OBJECT
+
+public:
+    enum MappingRole {
+        TypeRole = Qt::UserRole+1,
+        NameRole,
+        HintRole,
+        BaseRole,
+        ButtonAddressRole,
+        LedAddressRole,
+        LabelAddressRole,
+        Label2AddressRole,
+        DefaultLabelRole,
+        DefaultLabel2Role
+    };
+    Q_ENUM(MappingRole)
+
+public:
+    MappingModel(Mapping* m);
+
+    QHash<int, QByteArray> roleNames() const override;
+
+    int rowCount(const QModelIndex& index = {}) const override;
+
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+    bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
+
+    Qt::ItemFlags flags(const QModelIndex& index = {}) const override;
+
+public slots:
+    void loadLCD();
+    void loadDisplays();
+    void loadvPot();
+    void loadButtons();
+    void loadFaders();
+    void loadAssignment();
+    void loadGlobal();
+    void loadAutomation();
+    void loadTransport();
+
+private:
+    void load(const QString& type, const QString& name, const QString& hint, QString* base);
+    void load(const QString& type, const QString& name, const QString& hint, ButtonControl* btn);
+    void load(const QString& type, const QString& name, const QString& hint, LabelControl* lb);
+
+private:
+    struct Data {
+        QString type;
+        QString name;
+        QString hint;
+
+        QString*       _base   = nullptr;
+        ButtonControl* _button = nullptr;
+        LabelControl*  _label  = nullptr;
+    };
+
+    Mapping* _mapping;
+    QList<Data> _data;
 };
 
 #endif // MAPPING_H
