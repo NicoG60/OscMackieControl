@@ -67,7 +67,7 @@ public:
     QString vuMeterBaseAddr;
     QString faderBaseAddr;
     QString jogBaseAddr;
-    QString assignmentAddr;
+    QString assignmentBaseAddr;
 
     QString lcdCharBaseAddr;
     QString lcdTrackBaseAddr;
@@ -147,7 +147,6 @@ public:
     enum MappingRole {
         TypeRole = Qt::UserRole+1,
         NameRole,
-        HintRole,
         BaseRole,
         ButtonAddressRole,
         LedAddressRole,
@@ -182,15 +181,14 @@ public slots:
     void loadTransport();
 
 private:
-    void load(const QString& type, const QString& name, const QString& hint, QString* base);
-    void load(const QString& type, const QString& name, const QString& hint, ButtonControl* btn);
-    void load(const QString& type, const QString& name, const QString& hint, LabelControl* lb);
+    void load(const QString& name, QString* base);
+    void load(const QString& name, ButtonControl* btn);
+    void load(const QString& name, LabelControl* lb);
 
 private:
     struct Data {
         QString type;
         QString name;
-        QString hint;
 
         QString*       _base   = nullptr;
         ButtonControl* _button = nullptr;

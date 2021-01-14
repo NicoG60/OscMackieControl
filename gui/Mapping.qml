@@ -34,6 +34,11 @@ Item {
             width: 210
             height: 40
             text: "Displays"
+
+            onClicked: {
+                drawer.open()
+                listView.model.loadDisplays()
+            }
         }
 
         McuButton {
@@ -43,6 +48,11 @@ Item {
             width: 245
             height: 40
             text: "Virtual Pots"
+
+            onClicked: {
+                drawer.open()
+                listView.model.loadvPot()
+            }
         }
 
         McuButton {
@@ -52,6 +62,11 @@ Item {
             width: 245
             height: 140
             text: "Channel Buttons"
+
+            onClicked: {
+                drawer.open()
+                listView.model.loadButtons()
+            }
         }
 
         McuButton {
@@ -75,6 +90,11 @@ Item {
             width: 60
             height: 183
             text: "Assignments"
+
+            onClicked: {
+                drawer.open()
+                listView.model.loadAssignment()
+            }
         }
 
         McuButton {
@@ -84,6 +104,11 @@ Item {
             width: 160
             height: 132
             text: "Global buttons"
+
+            onClicked: {
+                drawer.open()
+                listView.model.loadGlobal()
+            }
         }
 
         McuButton {
@@ -93,6 +118,11 @@ Item {
             width: 160
             height: 56
             text: "Automation"
+
+            onClicked: {
+                drawer.open()
+                listView.model.loadAutomation()
+            }
         }
 
         McuButton {
@@ -102,7 +132,25 @@ Item {
             width: 160
             height: 178
             text: "Transport"
+
+            onClicked: {
+                drawer.open()
+                listView.model.loadTransport()
+            }
         }
+    }
+
+    Label {
+        width: mcu.width
+
+        anchors.top: mcu.bottom
+        anchors.topMargin: 50
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: -0.5*drawer.width*drawer.position
+
+        horizontalAlignment: Qt.AlignHCenter
+
+        text: qsTr("Don't forget to update your controller mapping as well.\nYou can download the TouchOSC as usual, this software should be recognized in the layout sync panel.");
     }
 
     Drawer {
@@ -116,13 +164,16 @@ Item {
 
         ListView {
             id: listView
-            anchors.fill: parent
             model: App.mapping.createModel()
 
+            anchors.fill: parent
+
             header: Label {
-                width: listView.width
-                padding: 20
                 text: qsTr("Mapping Editor")
+                height: 60
+                width: parent.width
+                font.pointSize: 18
+                font.bold: true
                 verticalAlignment: Qt.AlignVCenter
                 horizontalAlignment: Qt.AlignHCenter
             }
@@ -142,12 +193,98 @@ Item {
                     Label {
                         text: model.name
                         Layout.fillWidth: true
+                        font.bold: true
                     }
                     TextField {
                         Layout.fillWidth: true
                         visible: type === "base"
-                        placeholderText: model.hint
                         text: model.base
+                        onEditingFinished: model.base = text
+
+                        font.pointSize: 14
+
+                        ToolTip.visible: hovered
+                        ToolTip.text: qsTr(`Base address for component ${model.name}.`)
+                    }
+                    RowLayout {
+                        visible: type === "button"
+                        Layout.fillWidth: true
+
+                        spacing: 5
+
+                        TextField {
+                            text: model.button
+                            onEditingFinished: model.button = text
+
+                            font.pointSize: 14
+
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr(`Address for button ${model.name}.`)
+                        }
+                        TextField {
+                            visible: text.length > 0
+                            text: model.led
+                            onEditingFinished: model.led = text
+
+                            font.pointSize: 14
+
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr(`Address for led indicator ${model.name}.`)
+                        }
+                    }
+                    RowLayout {
+                        visible: type === "button" || type === "label"
+                        Layout.fillWidth: true
+
+                        spacing: 5
+
+                        TextField {
+                            text: model.label
+                            visible: text.length > 0
+                            onEditingFinished: model.label = text
+
+                            font.pointSize: 14
+
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr(`Address of label ${model.name}.`)
+                        }
+                        TextField {
+                            text: model.default
+                            visible: text.length > 0
+                            onEditingFinished: model.default = text
+
+                            font.pointSize: 14
+
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr(`Default text label of ${model.name}.`)
+                        }
+                    }
+                    RowLayout {
+                        visible: type === "button"
+                        Layout.fillWidth: true
+
+                        spacing: 5
+
+                        TextField {
+                            text: model.label2
+                            visible: text.length > 0
+                            onEditingFinished: model.label2 = text
+
+                            font.pointSize: 14
+
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr(`Address of second line label ${model.name}.`)
+                        }
+                        TextField {
+                            visible: text.length > 0
+                            text: model.default2
+                            onEditingFinished: model.default2 = text
+
+                            font.pointSize: 14
+
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr(`Default text of second label ${model.name}.`)
+                        }
                     }
                 }
             }

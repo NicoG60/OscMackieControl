@@ -98,6 +98,7 @@ void Mapping::loadDefault()
     vuMeterBaseAddr  = "/VuMeter";
     faderBaseAddr    = "/Fader";
     jogBaseAddr      = "/Jog";
+    assignmentBaseAddr = "/Assignment";
     lcdCharBaseAddr  = "/LcdChar";
     lcdTrackBaseAddr = "/LcdTrack";
     lcdBaseAddr      = "/Lcd";
@@ -140,7 +141,7 @@ void Mapping::loadFromJson(const QJsonObject& obj)
     vuMeterBaseAddr  = obj["vu"].toString();
     faderBaseAddr    = obj["fader"].toString();
     jogBaseAddr      = obj["jog"].toString();
-    assignmentAddr   = obj["assignment"].toString();
+    assignmentBaseAddr = obj["assignment"].toString();
 
     lcdCharBaseAddr  = obj["lcd_char"].toString();
     lcdTrackBaseAddr = obj["lcd_track"].toString();
@@ -184,7 +185,7 @@ QJsonObject Mapping::dumpJson() const
     r.insert("vu",         vuMeterBaseAddr);
     r.insert("fader",      faderBaseAddr);
     r.insert("jog",        jogBaseAddr);
-    r.insert("assignment", assignmentAddr);
+    r.insert("assignment", assignmentBaseAddr);
 
     r.insert("lcd_char",  lcdCharBaseAddr);
     r.insert("lcd_track", lcdTrackBaseAddr);
@@ -589,7 +590,7 @@ void Mapping::exportTouchOSCAssign(QXmlStreamWriter* writer)
     exportTouchOSCMackieControlButton(writer, {974, 126, 50, 40}, otherButtons[QMidi::F_3]);
 
     exportTouchOSCLabel(writer, {924, 246, 100, 20}, "gray", lbAssigment.defaultString, 14, lbAssigment.addr, true, true);
-    exportTouchOSCLabel(writer, {924, 266, 100, 60}, "red", "AA", 45, assignmentAddr, true, true);
+    exportTouchOSCLabel(writer, {924, 266, 100, 60}, "red", "AA", 45, assignmentBaseAddr, true, true);
 }
 
 void Mapping::exportTouchOSCFaderBank(QXmlStreamWriter* writer)
@@ -783,7 +784,7 @@ void Mapping::exportTouchOSCTimecodeAssign(QXmlStreamWriter* writer)
 
     // Assign
     exportTouchOSCLabel(writer, {904, 124, 100, 20}, "gray", lbAssigment.defaultString, 14, lbAssigment.addr, true, true);
-    exportTouchOSCLabel(writer, {904, 144, 100, 60}, "red", "AA", 45, assignmentAddr, true, true);
+    exportTouchOSCLabel(writer, {904, 144, 100, 60}, "red", "AA", 45, assignmentBaseAddr, true, true);
 }
 
 void Mapping::exportTouchOSCMackieControlButton(QXmlStreamWriter* writer, const QRect& rect, const ButtonControl& btn, const TouchOscButtonOption &opt)
@@ -931,7 +932,6 @@ QHash<int, QByteArray> MappingModel::roleNames() const
     return {
         { TypeRole,          "type"     },
         { NameRole,          "name"     },
-        { HintRole,          "hint"     },
         { BaseRole,          "base"     },
         { ButtonAddressRole, "button"   },
         { LedAddressRole,    "led"      },
@@ -951,12 +951,12 @@ int MappingModel::rowCount(const QModelIndex& index) const
 QVariant MappingModel::data(const QModelIndex& index, int role) const
 {
     if(!index.isValid())
-        return {};
+        return QString{};
 
     int r = index.row();
 
     if(r < 0 || r >= _data.size())
-        return {};
+        return QString{};
 
     auto& d = _data[r];
 
@@ -967,9 +967,6 @@ QVariant MappingModel::data(const QModelIndex& index, int role) const
 
     case NameRole:
         return d.name;
-
-    case HintRole:
-        return d.hint;
 
     case BaseRole:
         return d._base ? *d._base : QString();
@@ -986,7 +983,7 @@ QVariant MappingModel::data(const QModelIndex& index, int role) const
         else if(d._label)
             return d._label->addr;
         else
-            return {};
+            return QString{};
 
     case Label2AddressRole:
         return d._button ? d._button->label2Addr : QString();
@@ -997,13 +994,13 @@ QVariant MappingModel::data(const QModelIndex& index, int role) const
         else if(d._label)
             return d._label->defaultString;
         else
-            return {};
+            return QString{};
 
     case DefaultLabel2Role:
         return d._button ? d._button->defaultLabel2 : QString();
 
     default:
-        return {};
+        return QString{};
     }
 }
 
@@ -1015,7 +1012,7 @@ bool MappingModel::setData(const QModelIndex& index, const QVariant& value, int 
     int r = index.row();
 
     if(r < 0 || r >= _data.size())
-        return {};
+        return false;
 
     auto& d = _data[r];
 
@@ -1025,6 +1022,7 @@ bool MappingModel::setData(const QModelIndex& index, const QVariant& value, int 
         if(d._base)
         {
             *d._base = value.toString();
+            emit dataChanged(index, index, {role});
             return true;
         }
         else
@@ -1034,6 +1032,7 @@ bool MappingModel::setData(const QModelIndex& index, const QVariant& value, int 
         if(d._button)
         {
             d._button->btnAddr = value.toString();
+            emit dataChanged(index, index, {role});
             return true;
         }
         else
@@ -1043,6 +1042,7 @@ bool MappingModel::setData(const QModelIndex& index, const QVariant& value, int 
         if(d._button)
         {
             d._button->ledAddr = value.toString();
+            emit dataChanged(index, index, {role});
             return true;
         }
         else
@@ -1052,11 +1052,13 @@ bool MappingModel::setData(const QModelIndex& index, const QVariant& value, int 
         if(d._button)
         {
             d._button->label1Addr = value.toString();
+            emit dataChanged(index, index, {role});
             return true;
         }
         else if(d._label)
         {
             d._label->addr = value.toString();
+            emit dataChanged(index, index, {role});
             return true;
         }
         else
@@ -1066,6 +1068,7 @@ bool MappingModel::setData(const QModelIndex& index, const QVariant& value, int 
         if(d._button)
         {
             d._button->label2Addr = value.toString();
+            emit dataChanged(index, index, {role});
             return true;
         }
         else
@@ -1075,11 +1078,13 @@ bool MappingModel::setData(const QModelIndex& index, const QVariant& value, int 
         if(d._button)
         {
             d._button->defaultLabel1 = value.toString();
+            emit dataChanged(index, index, {role});
             return true;
         }
         else if(d._label)
         {
             d._label->defaultString = value.toString();
+            emit dataChanged(index, index, {role});
             return true;
         }
         else
@@ -1089,6 +1094,7 @@ bool MappingModel::setData(const QModelIndex& index, const QVariant& value, int 
         if(d._button)
         {
             d._button->defaultLabel2 = value.toString();
+            emit dataChanged(index, index, {role});
             return true;
         }
         else
@@ -1110,26 +1116,53 @@ void MappingModel::loadLCD()
     beginResetModel();
     _data.clear();
 
-    load("base", "LCD address", {}, &_mapping->lcdBaseAddr);
-    load("base", "LCD lines base address", "/<base_addr><line_num>", &_mapping->lcdLineBaseAddr);
-    load("base", "LCD tracks base address", "/<base_addr><track_num><line_num>", &_mapping->lcdTrackBaseAddr);
-    load("base", "LCD character base address", "/<base_addr><char_num>", &_mapping->lcdCharBaseAddr);
+    load("LCD address", &_mapping->lcdBaseAddr);
+    load("LCD lines base address", &_mapping->lcdLineBaseAddr);
+    load("LCD tracks base address", &_mapping->lcdTrackBaseAddr);
+    load("LCD character base address", &_mapping->lcdCharBaseAddr);
 
     endResetModel();
 }
 
 void MappingModel::loadDisplays()
 {
+    beginResetModel();
+    _data.clear();
 
+    load("Assignment Label address", &_mapping->lbAssigment);
+    load("Assignment base address", &_mapping->assignmentBaseAddr);
+    load("Timecode Label address", &_mapping->lbTimecode);
+    load("Timecode base address", &_mapping->timecodeBaseAddr);
+    load("SMPTE Led", &_mapping->otherButtons[QMidi::F_8].ledAddr);
+    load("BEATS Led", &_mapping->otherButtons[QMidi::FSharp_8].ledAddr);
+    load("RUDE SOLO Led", &_mapping->otherButtons[QMidi::G_8].ledAddr);
+
+    endResetModel();
 }
 
 void MappingModel::loadvPot()
 {
+    beginResetModel();
+    _data.clear();
 
+    load("VPot encoder base address", &_mapping->VPOTBaseAddr);
+    load("VPot led ring base address", &_mapping->VPOTLedBaseAddr);
+    load("VPot button click base address", &_mapping->VPOTSelect.btnAddr);
+
+    endResetModel();
 }
 
 void MappingModel::loadButtons()
 {
+    beginResetModel();
+    _data.clear();
+
+    load("REC buttons base addresses", &_mapping->REC);
+    load("MUTE buttons base addresses", &_mapping->MUTE);
+    load("SOLO buttons base addresses", &_mapping->SOLO);
+    load("SELECT buttons base addresses", &_mapping->SEL);
+
+    endResetModel();
 }
 
 void MappingModel::loadFaders()
@@ -1137,59 +1170,154 @@ void MappingModel::loadFaders()
     beginResetModel();
     _data.clear();
 
-    load("base", "Faders base address", "/<base_addr><track_num>", &_mapping->faderBaseAddr);
+    load("Track label base address", &_mapping->lbTrackNum);
+    load("Faders base address", &_mapping->faderBaseAddr);
+    load("Vu meter base address", &_mapping->vuMeterBaseAddr);
 
     endResetModel();
 }
 
 void MappingModel::loadAssignment()
 {
+    beginResetModel();
+    _data.clear();
 
+    load("VPot Assign Label", &_mapping->lbVPOTAssign);
+
+    load("Track", &_mapping->otherButtons[QMidi::E_2]);
+    load("Send", &_mapping->otherButtons[QMidi::F_2]);
+    load("Pan", &_mapping->otherButtons[QMidi::FSharp_2]);
+    load("Plugin", &_mapping->otherButtons[QMidi::G_2]);
+    load("EQ", &_mapping->otherButtons[QMidi::GSharp_2]);
+    load("Instrument", &_mapping->otherButtons[QMidi::A_2]);
+
+    load("Fader Banks Label", &_mapping->lbFaderBanks);
+
+    load("Bank Left", &_mapping->otherButtons[QMidi::ASharp_2]);
+    load("Bank Right", &_mapping->otherButtons[QMidi::B_2]);
+    load("Channel Left", &_mapping->otherButtons[QMidi::C_3]);
+    load("Channel Right", &_mapping->otherButtons[QMidi::CSharp_3]);
+    load("Flip", &_mapping->otherButtons[QMidi::D_3]);
+    load("Global", &_mapping->otherButtons[QMidi::DSharp_3]);
+
+    endResetModel();
 }
 
 void MappingModel::loadGlobal()
 {
+    beginResetModel();
+    _data.clear();
 
+    load("Display Label", &_mapping->lbDisplay);
+
+    load("Name / Value", &_mapping->otherButtons[QMidi::E_3]);
+    load("SMPTE / BEATS", &_mapping->otherButtons[QMidi::F_3]);
+
+    load("Function Label", &_mapping->lbFunctions);
+    load("Function button base address", &_mapping->Functions);
+
+    load("Global View Label", &_mapping->lbGlobalView);
+    load("Midi Tracks", &_mapping->otherButtons[QMidi::D_4]);
+    load("Input Tracks", &_mapping->otherButtons[QMidi::DSharp_4]);
+    load("Audio Tracks", &_mapping->otherButtons[QMidi::E_4]);
+    load("Audio Inst Tracks", &_mapping->otherButtons[QMidi::F_4]);
+    load("Aux Tracks", &_mapping->otherButtons[QMidi::FSharp_4]);
+    load("Bus Tracks", &_mapping->otherButtons[QMidi::G_4]);
+    load("Output Tracks", &_mapping->otherButtons[QMidi::GSharp_4]);
+    load("User", &_mapping->otherButtons[QMidi::A_4]);
+
+    endResetModel();
 }
 
 void MappingModel::loadAutomation()
 {
+    beginResetModel();
+    _data.clear();
 
+    load("Modifiers Label", &_mapping->lbModifiers);
+
+    load("Shift", &_mapping->otherButtons[QMidi::ASharp_4]);
+    load("Option", &_mapping->otherButtons[QMidi::B_4]);
+    load("Control", &_mapping->otherButtons[QMidi::C_5]);
+    load("Alt", &_mapping->otherButtons[QMidi::CSharp_5]);
+
+    load("Automation Label", &_mapping->lbAutomation);
+
+    load("Read/Off", &_mapping->otherButtons[QMidi::D_5]);
+    load("Write", &_mapping->otherButtons[QMidi::DSharp_5]);
+    load("Trim", &_mapping->otherButtons[QMidi::E_5]);
+    load("Touch", &_mapping->otherButtons[QMidi::F_5]);
+    load("Latch", &_mapping->otherButtons[QMidi::FSharp_5]);
+    load("Groups", &_mapping->otherButtons[QMidi::G_5]);
+
+    load("Utilities Label", &_mapping->lbUtilities);
+
+    load("Save", &_mapping->otherButtons[QMidi::GSharp_5]);
+    load("Undo", &_mapping->otherButtons[QMidi::A_5]);
+    load("Cancel", &_mapping->otherButtons[QMidi::ASharp_5]);
+    load("Enter", &_mapping->otherButtons[QMidi::B_5]);
+
+    endResetModel();
 }
 
 void MappingModel::loadTransport()
 {
+    beginResetModel();
+    _data.clear();
 
+    load("Transport Label", &_mapping->lbTransport);
+
+    load("Markers", &_mapping->otherButtons[QMidi::C_6]);
+    load("Nudge", &_mapping->otherButtons[QMidi::CSharp_6]);
+    load("Cycle", &_mapping->otherButtons[QMidi::D_6]);
+    load("Drop", &_mapping->otherButtons[QMidi::DSharp_6]);
+    load("Replace", &_mapping->otherButtons[QMidi::E_6]);
+    load("Click", &_mapping->otherButtons[QMidi::F_6]);
+    load("Solo", &_mapping->otherButtons[QMidi::FSharp_6]);
+
+    load("Rewind", &_mapping->otherButtons[QMidi::G_6]);
+    load("Forward", &_mapping->otherButtons[QMidi::GSharp_6]);
+    load("Stop", &_mapping->otherButtons[QMidi::A_6]);
+    load("Play", &_mapping->otherButtons[QMidi::ASharp_6]);
+    load("Rec", &_mapping->otherButtons[QMidi::B_6]);
+
+    load("Up", &_mapping->otherButtons[QMidi::C_7]);
+    load("Down", &_mapping->otherButtons[QMidi::CSharp_7]);
+    load("Scrub", &_mapping->otherButtons[QMidi::D_7]);
+    load("Zoom", &_mapping->otherButtons[QMidi::DSharp_7]);
+    load("Left", &_mapping->otherButtons[QMidi::E_7]);
+    load("Right", &_mapping->otherButtons[QMidi::F_7]);
+
+    load("Jog", &_mapping->jogBaseAddr);
+
+    endResetModel();
 }
 
-void MappingModel::load(const QString& type, const QString& name, const QString& hint, QString* base)
+void MappingModel::load(const QString& name, QString* base)
 {
     Data d;
-    d.type = type;
+    d.type = "base";
     d.name = name;
-    d.hint = hint;
     d._base = base;
 
     _data << d;
 }
 
-void MappingModel::load(const QString& type, const QString& name, const QString& hint, ButtonControl* btn)
+void MappingModel::load(const QString& name, ButtonControl* btn)
 {
     Data d;
-    d.type = type;
+    d.type = "button";
     d.name = name;
-    d.hint = hint;
     d._button = btn;
 
     _data << d;
 }
 
-void MappingModel::load(const QString& type, const QString& name, const QString& hint, LabelControl* lb)
+void MappingModel::load(const QString& name, LabelControl* lb)
 {
     Data d;
-    d.type = type;
+    d.type = "label";
     d.name = name;
-    d.hint = hint;
     d._label = lb;
 
     _data << d;
