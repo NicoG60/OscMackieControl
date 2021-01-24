@@ -7,9 +7,6 @@
 [submodule "third_party/QtAwesome"]
 	path = third_party/QtAwesome
 	url = https://github.com/NicoG60/QtAwesome.git
-[submodule "third_party/quazip"]
-	path = third_party/quazip
-	url = https://github.com/stachenov/quazip.git
 [submodule "third_party/qmdnsengine"]
 	path = third_party/qmdnsengine
 	url = https://github.com/nitroshare/qmdnsengine.git
