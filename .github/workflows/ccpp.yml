@@ -35,7 +35,7 @@ jobs:
       if: runner.os == 'Windows'
 
     - name: deploy mac
-      run: macdeployqt -qmldir=gui -verbose=3 build/src/bin/OscMackieControl.app
+      run: macdeployqt build/src/bin/OscMackieControl.app -qmldir=gui -verbose=3
       if: runner.os == 'macOS'
 
     - name: upload
