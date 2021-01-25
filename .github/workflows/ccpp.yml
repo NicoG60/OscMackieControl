@@ -28,10 +28,10 @@ jobs:
       run: cmake -S . -B build
 
     - name: build
-      run: cmake --build build
+      run: cmake --build build --config Release
 
     - name: deploy win
-      run: windeployqt --release --qmldir gui --compiler-runtime --verbose 2 build/src/bin/OscMackieControl.exe
+      run: windeployqt --release --qmldir gui --compiler-runtime --verbose 2 build/src/bin/Release/OscMackieControl.exe
       if: runner.os == 'Windows'
 
     - name: deploy mac
