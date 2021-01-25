@@ -44,17 +44,23 @@ file(GLOB headers *.h)
 file(GLOB sources *.cpp)
 qt5_add_resources(sources ${OSCMACKIECONRTOL_SOURCE_DIR}/gui/qml.qrc)
 
-if(WIN32)
-    set(icon ${OSCMACKIECONRTOL_SOURCE_DIR}/graphical/appicon.rc)
-elseif(APPLE)
-    set(MACOSX_BUNDLE_ICON_FILE icon.icns)
 
-    set(icon ${OSCMACKIECONRTOL_SOURCE_DIR}/graphical/icon.icns)
-    set_source_files_properties(${icon} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-endif()
 
 # target
-add_executable(OscMackieControl MACOSX_BUNDLE ${icon} ${sources} ${headers})
+add_executable(OscMackieControl ${sources} ${headers})
+
+if(WIN32)
+    target_sources(OscMackieControl PUBLIC ${OSCMACKIECONRTOL_SOURCE_DIR}/graphical/appicon.rc)
+    set_target_properties(OscMackieControl PROPERTIES WIN32_EXECUTABLE TRUE)
+elseif(APPLE)
+    set(MACOSX_BUNDLE_ICON_FILE icon.icns)
+    set(icon ${OSCMACKIECONRTOL_SOURCE_DIR}/graphical/icon.icns)
+    set_source_files_properties(${icon} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
+    target_sources(OscMackieControl PUBLIC ${icon})
+    set_target_properties(OscMackieControl PROPERTIES MACOSX_BUNDLE TRUE)
+endif()
+
 target_link_libraries(
     OscMackieControl
     PRIVATE
