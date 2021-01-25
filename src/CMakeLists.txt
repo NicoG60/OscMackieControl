@@ -74,3 +74,5 @@ target_link_libraries(
 )
 target_compile_definitions(OscMackieControl PRIVATE SOFT_VERSION=${PROJECT_VERSION})
 target_compile_definitions(OscMackieControl PRIVATE GIT_VERSION=${GIT_VERSION})
+
+set_target_properties(OscMackieControl PROPERTIES RUNTIME_OUTPUT_DIRECTORY bin)

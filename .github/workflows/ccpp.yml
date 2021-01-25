@@ -11,8 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Get the repo
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
     - uses: actions/cache@v2
       id: cache
@@ -31,8 +30,16 @@ jobs:
     - name: build
       run: cmake --build build
 
+    - name: deploy win
+      run: windeployqt --release --qmldir gui --compiler-runtime --verbose 2 build/src/bin/OscMackieControl.exe
+      if: runner.os == 'Windows'
+
+    - name: deploy mac
+      run: macdeployqt --qmldir gui --verbose 3 build/src/bin/OscMackieControl.app
+      if: runner.os == 'macOS'
+
     - name: upload
       uses: actions/upload-artifact@v1
       with:
         name: release-${{ runner.os }}
-        path: build/src/OscMackieControl.*
+        path: build/src/bin
