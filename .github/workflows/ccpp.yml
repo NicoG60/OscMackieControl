@@ -13,15 +13,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - uses: actions/cache@v2
-      id: cache
-      with:
-        path: ${{ github.workspace }}/Qt
-        key: ${{ runner.os }}-QtCache
-
     - uses: jurplel/install-qt-action@v2
       with:
-        cached: ${{ steps.cache.outputs.cache-hit }}
         modules: 'core gui widgets network qml quick quickcontrols2 xml'
 
     - name: configure
