@@ -16,7 +16,7 @@ jobs:
     - uses: actions/cache@v2
       id: cache
       with:
-        path: ../Qt
+        path: ${{ github.workspace }}/Qt
         key: ${{ runner.os }}-QtCache
 
     - uses: jurplel/install-qt-action@v2
@@ -35,7 +35,7 @@ jobs:
       if: runner.os == 'Windows'
 
     - name: deploy mac
-      run: macdeployqt --qmldir gui --verbose 3 build/src/bin/OscMackieControl.app
+      run: macdeployqt -qmldir=gui -verbose=3 build/src/bin/OscMackieControl.app
       if: runner.os == 'macOS'
 
     - name: upload
