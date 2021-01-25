@@ -14,7 +14,7 @@ if(N_PROC EQUAL 0) # fallback to 1 if failure
     set(N_PROC 1)
 endif()
 
-set(BUILD_SHARED_LIBS OFF)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "static lib for everyone" FORCE)
 
 execute_process(COMMAND git submodule update --init -j ${N_PROC}
                 WORKING_DIRECTORY ${OSCMACKIECONRTOL_SOURCE_DIR})

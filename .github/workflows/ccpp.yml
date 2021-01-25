@@ -1,0 +1,40 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Get the repo
+      uses: actions/checkout@v2
+
+    - uses: actions/cache@v2
+      id: cache
+      with:
+        path: ../Qt
+        key: ${{ runner.os }}-QtCache
+
+    - uses: jurplel/install-qt-action@v2
+      with:
+        cached: ${{ steps.cache.outputs.cache-hit }}
+        modules: 'core gui widgets network qml quick quickcontrols2 xml'
+
+    - name: configure
+      run: cmake -S . -B build
+
+    - name: build
+      run: cmake --build build
+
+    - name: upload
+      uses: actions/upload-artifact@v1
+      with:
+        name: release-${{ runner.os }}
+        path: build/src/OscMackieControl.*
