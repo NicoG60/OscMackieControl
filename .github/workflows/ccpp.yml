@@ -15,7 +15,7 @@ jobs:
 
     - uses: jurplel/install-qt-action@v2
       with:
-        modules: 'core gui widgets network qml quick quickcontrols2 xml'
+        modules: 'core gui widgets network qml quick quickcontrols2 xml qtcharts'
 
     - name: configure
       run: cmake -S . -B build
