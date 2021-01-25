@@ -42,21 +42,21 @@ public slots:
     void resetCounter();
 
 public:
-    QOscInterface*   osc     = nullptr;
-    QMidi*           midi    = nullptr;
+    QOscInterface* osc     = nullptr;
+    QMidi*         midi    = nullptr;
 
     Mapping* mapping = nullptr;
 
     Backend*               backend  = nullptr;
     QQmlApplicationEngine* frontend = nullptr;
 
-    QAction*         midiAction = nullptr;
-    QAction*         oscAction  = nullptr;
-    QMenu*           menu    = nullptr;
+    QAction* midiAction = nullptr;
+    QAction* oscAction  = nullptr;
+    QMenu*   menu       = nullptr;
 
-    QTimer*    timerCounter;
-    IOMonitor* oscMonitor;
-    IOMonitor* midiMonitor;
+    QTimer*    timerCounter = nullptr;
+    IOMonitor* oscMonitor   = nullptr;
+    IOMonitor* midiMonitor  =nullptr;
 
     TouchOSCBroadcaster* touchOSCBroadcast;
 };

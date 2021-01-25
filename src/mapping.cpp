@@ -3,8 +3,11 @@
 #include <QRect>
 #include <QLineF>
 #include <QtMath>
-#include <quazip.h>
-#include <quazipfile.h>
+#include <QBuffer>
+
+#include <sstream>
+
+#include <zip_file.hpp>
 
 Mapping::Mapping(QObject* parent) :
     QObject(parent)
@@ -283,31 +286,62 @@ LabelControl Mapping::toLabel(const QJsonObject& obj) const
 
 void Mapping::exportTouchOSCLayout(QIODevice* dev, bool in_zip)
 {
-    QIODevice* out = dev;
-
-    QScopedPointer<QuaZip> zip;
-    QScopedPointer<QuaZipFile> file;
-
     if(in_zip)
     {
-        zip.reset(new QuaZip(dev));
-        if(!zip->open(QuaZip::mdCreate))
-        {
-            qWarning() << "Error opening zip file" << zip->getZipError();
-            return;
-        }
+        miniz_cpp::zip_file f;
 
-        file.reset(new QuaZipFile(zip.data()));
-        if(!file->open(QIODevice::WriteOnly, QuaZipNewInfo("index.xml")))
-        {
-            qWarning() << "Error opening file within zip file";
-            return;
-        }
+        QBuffer buf;
+        buf.open(QIODevice::ReadWrite);
+        exportTouchOSCXML(&buf);
 
-        out = file.data();
+        f.writestr("index.xml", buf.data().toStdString());
+
+        std::ostringstream stream;
+        f.save(stream);
+
+        auto out = stream.str();
+
+        dev->write(out.c_str(), out.length());
+    }
+    else
+        exportTouchOSCXML(dev);
+}
+
+ButtonControl Mapping::createButton(quint8 note, const QString& name, const QString& label, const QString& label2)
+{
+    ButtonControl btn;
+
+    btn.note = note;
+    btn.btnAddr = QStringLiteral("/") + name;
+    btn.ledAddr = QStringLiteral("/led") + name;
+    btn.label1Addr = QStringLiteral("/label") + name;
+    btn.defaultLabel1 = label.isEmpty() ? name : label;
+
+    if(!label2.isEmpty())
+    {
+        btn.label1Addr += "1";
+        btn.label2Addr = QStringLiteral("/label") + name + "2";
+        btn.defaultLabel2 = label2;
     }
 
-    QXmlStreamWriter writer(out);
+    return btn;
+}
+
+void Mapping::registerButton(quint8 note, const QString& name, const QString& label, const QString& label2)
+{
+    auto btn = createButton(note, name, label, label2);
+    btn.ledAddr.clear();
+    otherButtons.insert(btn.note, btn);
+}
+
+void Mapping::registerButtonLed(quint8 note, const QString& name, const QString& label, const QString& label2)
+{
+    otherButtons.insert(note, createButton(note, name, label, label2));
+}
+
+void Mapping::exportTouchOSCXML(QIODevice* dev)
+{
+    QXmlStreamWriter writer(dev);
     writer.setAutoFormatting(false);
     writer.writeStartDocument();
 
@@ -346,44 +380,6 @@ void Mapping::exportTouchOSCLayout(QIODevice* dev, bool in_zip)
     writer.writeEndElement();
 
     writer.writeEndDocument();
-
-    if(in_zip)
-    {
-        file->close();
-        zip->close();
-    }
-}
-
-ButtonControl Mapping::createButton(quint8 note, const QString& name, const QString& label, const QString& label2)
-{
-    ButtonControl btn;
-
-    btn.note = note;
-    btn.btnAddr = QStringLiteral("/") + name;
-    btn.ledAddr = QStringLiteral("/led") + name;
-    btn.label1Addr = QStringLiteral("/label") + name;
-    btn.defaultLabel1 = label.isEmpty() ? name : label;
-
-    if(!label2.isEmpty())
-    {
-        btn.label1Addr += "1";
-        btn.label2Addr = QStringLiteral("/label") + name + "2";
-        btn.defaultLabel2 = label2;
-    }
-
-    return btn;
-}
-
-void Mapping::registerButton(quint8 note, const QString& name, const QString& label, const QString& label2)
-{
-    auto btn = createButton(note, name, label, label2);
-    btn.ledAddr.clear();
-    otherButtons.insert(btn.note, btn);
-}
-
-void Mapping::registerButtonLed(quint8 note, const QString& name, const QString& label, const QString& label2)
-{
-    otherButtons.insert(note, createButton(note, name, label, label2));
 }
 
 void Mapping::exportTouchOSCTrack(QXmlStreamWriter* writer, quint8 track)

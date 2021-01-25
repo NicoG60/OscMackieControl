@@ -13,8 +13,6 @@
 #include <QDebug>
 #include <QDir>
 
-#include <quazip.h>
-
 OscMackieControlApp::OscMackieControlApp(QObject *parent) :
     QObject(parent)
 {

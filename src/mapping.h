@@ -113,6 +113,7 @@ private:
     void registerButtonLed(quint8 note, const QString& name, const QString& label = {}, const QString& label2 = {});
 
 private:
+    void exportTouchOSCXML(QIODevice* dev);
     void exportTouchOSCTrack(QXmlStreamWriter* writer, quint8 track);
     void exportTouchOSCLCD(QXmlStreamWriter* writer);
     void exportTouchOSCTimecode(QXmlStreamWriter* writer);
