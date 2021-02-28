@@ -76,10 +76,12 @@ void Backend::midiNoteOn(quint8 chan, quint8 note, quint8 vel)
 void Backend::midiControler(quint8 chan, quint8 control, uchar value)
 {
     Q_UNUSED(chan)
-    if(chan == 0 && control >= 48 && control <= 55)		 //This case for vPot Leds
+    if(control >= 48 && control <= 55)		 //This case for vPot Leds
         processVPotLed(control-48, value);
-    else if(chan == 15 && control >= 64 && control <= 73)   //This case for timecode display
+    else if(control >= 64 && control <= 73)   //This case for timecode display
         processTimecode(control-64, value);
+    else if(control >= 74 && control <= 75)
+        processAssignment(control-74, value);
     else
         qWarning() << "Unknown midi cc" << QStringLiteral("(C: %1, CC: %2, V: %3)").arg(chan).arg(control).arg(value);
 }
@@ -303,19 +305,14 @@ void Backend::processVPotLed(quint8 track, quint8 value)
 
 void Backend::processTimecode(quint8 chan, quint8 value)
 {
-    QString aff;
-
-    if(value == 20) aff = " "; //20 = ASCII code for space
-    else
-    {
-        bool dot = (value & 0x40); //Check if the dot is on
-
-        aff = QString::number(value & 0x0F);
-
-        if(dot) aff += ".";
-    }
-
+    QString aff = timecodeToString(value);
     _osc->send(craftAddr(_mapping->timecodeBaseAddr, chan+1), aff);
+}
+
+void Backend::processAssignment(quint8 chan, quint8 value)
+{
+    QString aff = timecodeToString(value);
+    _osc->send(craftAddr(_mapping->assignmentBaseAddr, chan+1), aff);
 }
 
 void Backend::processVuMeter(quint8 track, quint8 value)
@@ -347,6 +344,9 @@ void Backend::midiFader(quint8 track, quint16 value)
 
 void Backend::sendLcdText(const QByteArray& data)
 {
+    if(data.isEmpty())
+        return;
+
     QOscBundle bundle;
     auto it = data.begin();
 
@@ -358,7 +358,7 @@ void Backend::sendLcdText(const QByteArray& data)
     {
         char c = *it;
         _lcd[i] = c;
-        //bundle << QOscMessage(craftAddr(_mapping->charBaseAddr, i+1), QString(1, c));
+        bundle << QOscMessage(craftAddr(_mapping->lcdCharBaseAddr, i+1), QString(1, c));
     }
 
     i--;
@@ -417,4 +417,27 @@ void Backend::applyButton(const ButtonControl& btn)
 bool Backend::overlaps(int start, int end, int a, int b)
 {
     return start <= b && end >= a;
+}
+
+QString Backend::timecodeToString(quint8 value)
+{
+    QString r;
+
+    if(value & 0x40)
+    {
+        r = '.';
+        value -= 0x40;
+    }
+
+    if(value < 0x20)
+        value += 0x40;
+
+    QChar c(static_cast<char>(value));
+
+    if(!c.isLetterOrNumber())
+        c = ' ';
+
+    r.prepend(c);
+
+    return r;
 }

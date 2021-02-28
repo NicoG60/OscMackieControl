@@ -523,19 +523,20 @@ void Mapping::exportTouchOSCTimecode(QXmlStreamWriter* writer)
 {
     exportTouchOSCLabel(writer, {810, 4, 214, 60}, "red", " ", 14, "/backgroundTimecode", true, true);
 
-    exportTouchOSCLabel(writer, {812, 4, 24, 60}, "red", "0",  30, timecodeBaseAddr + QString::number(1), false, false);
-    exportTouchOSCLabel(writer, {830, 4, 24, 60}, "red", "0",  30, timecodeBaseAddr + QString::number(2), false, false);
-    exportTouchOSCLabel(writer, {848, 4, 30, 60}, "red", "0.", 30, timecodeBaseAddr + QString::number(3), false, false);
+    // right to left
+    exportTouchOSCLabel(writer, {998, 4, 30, 60}, "red", "0", 30, timecodeBaseAddr + QString::number(1), false, false);
+    exportTouchOSCLabel(writer, {980, 4, 30, 60}, "red", "0", 30, timecodeBaseAddr + QString::number(2), false, false);
+    exportTouchOSCLabel(writer, {962, 4, 30, 60}, "red", "0", 30, timecodeBaseAddr + QString::number(3), false, false);
 
-    exportTouchOSCLabel(writer, {874, 4, 24, 60}, "red", "0",  30, timecodeBaseAddr + QString::number(4), false, false);
-    exportTouchOSCLabel(writer, {892, 4, 30, 60}, "red", "0.", 30, timecodeBaseAddr + QString::number(5), false, false);
+    exportTouchOSCLabel(writer, {936, 4, 30, 60}, "red", "0", 30, timecodeBaseAddr + QString::number(4), false, false);
+    exportTouchOSCLabel(writer, {918, 4, 30, 60}, "red", "0", 30, timecodeBaseAddr + QString::number(5), false, false);
 
-    exportTouchOSCLabel(writer, {918, 4, 24, 60}, "red", "0",  30, timecodeBaseAddr + QString::number(6), false, false);
-    exportTouchOSCLabel(writer, {936, 4, 30, 60}, "red", "0.", 30, timecodeBaseAddr + QString::number(7), false, false);
+    exportTouchOSCLabel(writer, {892, 4, 30, 60}, "red", "0", 30, timecodeBaseAddr + QString::number(6), false, false);
+    exportTouchOSCLabel(writer, {874, 4, 30, 60}, "red", "0", 30, timecodeBaseAddr + QString::number(7), false, false);
 
-    exportTouchOSCLabel(writer, {962, 4, 24, 60}, "red", "0",  30, timecodeBaseAddr + QString::number(8), false, false);
-    exportTouchOSCLabel(writer, {980, 4, 24, 60}, "red", "0",  30, timecodeBaseAddr + QString::number(9), false, false);
-    exportTouchOSCLabel(writer, {998, 4, 24, 60}, "red", "0", 30, timecodeBaseAddr + QString::number(10), false, false);
+    exportTouchOSCLabel(writer, {848, 4, 30, 60}, "red", "0", 30, timecodeBaseAddr + QString::number(8), false, false);
+    exportTouchOSCLabel(writer, {830, 4, 30, 60}, "red", "0", 30, timecodeBaseAddr + QString::number(9), false, false);
+    exportTouchOSCLabel(writer, {812, 4, 30, 60}, "red", "0", 30, timecodeBaseAddr + QString::number(10), false, false);
 
     auto& smpte = otherButtons[QMidi::F_8];
     exportTouchOSCLabel(writer, {810, 64, 50, 20}, "gray", smpte.defaultLabel1, 12, smpte.label1Addr, false, false);
@@ -586,7 +587,11 @@ void Mapping::exportTouchOSCAssign(QXmlStreamWriter* writer)
     exportTouchOSCMackieControlButton(writer, {974, 126, 50, 40}, otherButtons[QMidi::F_3]);
 
     exportTouchOSCLabel(writer, {924, 246, 100, 20}, "gray", lbAssigment.defaultString, 14, lbAssigment.addr, true, true);
-    exportTouchOSCLabel(writer, {924, 266, 100, 60}, "red", "AA", 45, assignmentBaseAddr, true, true);
+    exportTouchOSCLabel(writer, {924, 266, 100, 60}, "red", " ", 45, "/backgroundAssignment", true, true);
+    // right to left
+    exportTouchOSCLabel(writer, {974, 266, 46,  60}, "red", " ", 45, assignmentBaseAddr + QString::number(1), false, false);
+    exportTouchOSCLabel(writer, {928, 266, 46,  60}, "red", " ", 45, assignmentBaseAddr + QString::number(2), false, false);
+
 }
 
 void Mapping::exportTouchOSCFaderBank(QXmlStreamWriter* writer)
@@ -920,7 +925,8 @@ MappingModel::MappingModel(Mapping* m) :
     QAbstractListModel(m),
     _mapping(m)
 {
-
+    connect(this, &QAbstractItemModel::dataChanged,
+            m   , &Mapping::mappingChanged);
 }
 
 QHash<int, QByteArray> MappingModel::roleNames() const
@@ -1112,9 +1118,9 @@ void MappingModel::loadLCD()
     beginResetModel();
     _data.clear();
 
-    load("LCD address", &_mapping->lcdBaseAddr);
-    load("LCD lines base address", &_mapping->lcdLineBaseAddr);
-    load("LCD tracks base address", &_mapping->lcdTrackBaseAddr);
+    load("LCD address",                &_mapping->lcdBaseAddr);
+    load("LCD lines base address",     &_mapping->lcdLineBaseAddr);
+    load("LCD tracks base address",    &_mapping->lcdTrackBaseAddr);
     load("LCD character base address", &_mapping->lcdCharBaseAddr);
 
     endResetModel();
@@ -1126,12 +1132,12 @@ void MappingModel::loadDisplays()
     _data.clear();
 
     load("Assignment Label address", &_mapping->lbAssigment);
-    load("Assignment base address", &_mapping->assignmentBaseAddr);
-    load("Timecode Label address", &_mapping->lbTimecode);
-    load("Timecode base address", &_mapping->timecodeBaseAddr);
-    load("SMPTE Led", &_mapping->otherButtons[QMidi::F_8].ledAddr);
-    load("BEATS Led", &_mapping->otherButtons[QMidi::FSharp_8].ledAddr);
-    load("RUDE SOLO Led", &_mapping->otherButtons[QMidi::G_8].ledAddr);
+    load("Assignment base address",  &_mapping->assignmentBaseAddr);
+    load("Timecode Label address",   &_mapping->lbTimecode);
+    load("Timecode base address",    &_mapping->timecodeBaseAddr);
+    load("SMPTE Led",                &_mapping->otherButtons[QMidi::F_8].ledAddr);
+    load("BEATS Led",                &_mapping->otherButtons[QMidi::FSharp_8].ledAddr);
+    load("RUDE SOLO Led",            &_mapping->otherButtons[QMidi::G_8].ledAddr);
 
     endResetModel();
 }
@@ -1141,8 +1147,8 @@ void MappingModel::loadvPot()
     beginResetModel();
     _data.clear();
 
-    load("VPot encoder base address", &_mapping->VPOTBaseAddr);
-    load("VPot led ring base address", &_mapping->VPOTLedBaseAddr);
+    load("VPot encoder base address",      &_mapping->VPOTBaseAddr);
+    load("VPot led ring base address",     &_mapping->VPOTLedBaseAddr);
     load("VPot button click base address", &_mapping->VPOTSelect.btnAddr);
 
     endResetModel();
@@ -1153,9 +1159,9 @@ void MappingModel::loadButtons()
     beginResetModel();
     _data.clear();
 
-    load("REC buttons base addresses", &_mapping->REC);
-    load("MUTE buttons base addresses", &_mapping->MUTE);
-    load("SOLO buttons base addresses", &_mapping->SOLO);
+    load("REC buttons base addresses",    &_mapping->REC);
+    load("MUTE buttons base addresses",   &_mapping->MUTE);
+    load("SOLO buttons base addresses",   &_mapping->SOLO);
     load("SELECT buttons base addresses", &_mapping->SEL);
 
     endResetModel();
@@ -1167,8 +1173,8 @@ void MappingModel::loadFaders()
     _data.clear();
 
     load("Track label base address", &_mapping->lbTrackNum);
-    load("Faders base address", &_mapping->faderBaseAddr);
-    load("Vu meter base address", &_mapping->vuMeterBaseAddr);
+    load("Faders base address",      &_mapping->faderBaseAddr);
+    load("Vu meter base address",    &_mapping->vuMeterBaseAddr);
 
     endResetModel();
 }
@@ -1180,21 +1186,21 @@ void MappingModel::loadAssignment()
 
     load("VPot Assign Label", &_mapping->lbVPOTAssign);
 
-    load("Track", &_mapping->otherButtons[QMidi::E_2]);
-    load("Send", &_mapping->otherButtons[QMidi::F_2]);
-    load("Pan", &_mapping->otherButtons[QMidi::FSharp_2]);
-    load("Plugin", &_mapping->otherButtons[QMidi::G_2]);
-    load("EQ", &_mapping->otherButtons[QMidi::GSharp_2]);
+    load("Track",      &_mapping->otherButtons[QMidi::E_2]);
+    load("Send",       &_mapping->otherButtons[QMidi::F_2]);
+    load("Pan",        &_mapping->otherButtons[QMidi::FSharp_2]);
+    load("Plugin",     &_mapping->otherButtons[QMidi::G_2]);
+    load("EQ",         &_mapping->otherButtons[QMidi::GSharp_2]);
     load("Instrument", &_mapping->otherButtons[QMidi::A_2]);
 
     load("Fader Banks Label", &_mapping->lbFaderBanks);
 
-    load("Bank Left", &_mapping->otherButtons[QMidi::ASharp_2]);
-    load("Bank Right", &_mapping->otherButtons[QMidi::B_2]);
-    load("Channel Left", &_mapping->otherButtons[QMidi::C_3]);
+    load("Bank Left",     &_mapping->otherButtons[QMidi::ASharp_2]);
+    load("Bank Right",    &_mapping->otherButtons[QMidi::B_2]);
+    load("Channel Left",  &_mapping->otherButtons[QMidi::C_3]);
     load("Channel Right", &_mapping->otherButtons[QMidi::CSharp_3]);
-    load("Flip", &_mapping->otherButtons[QMidi::D_3]);
-    load("Global", &_mapping->otherButtons[QMidi::DSharp_3]);
+    load("Flip",          &_mapping->otherButtons[QMidi::D_3]);
+    load("Global",        &_mapping->otherButtons[QMidi::DSharp_3]);
 
     endResetModel();
 }
@@ -1206,21 +1212,21 @@ void MappingModel::loadGlobal()
 
     load("Display Label", &_mapping->lbDisplay);
 
-    load("Name / Value", &_mapping->otherButtons[QMidi::E_3]);
+    load("Name / Value",  &_mapping->otherButtons[QMidi::E_3]);
     load("SMPTE / BEATS", &_mapping->otherButtons[QMidi::F_3]);
 
-    load("Function Label", &_mapping->lbFunctions);
+    load("Function Label",               &_mapping->lbFunctions);
     load("Function button base address", &_mapping->Functions);
 
     load("Global View Label", &_mapping->lbGlobalView);
-    load("Midi Tracks", &_mapping->otherButtons[QMidi::D_4]);
-    load("Input Tracks", &_mapping->otherButtons[QMidi::DSharp_4]);
-    load("Audio Tracks", &_mapping->otherButtons[QMidi::E_4]);
+    load("Midi Tracks",       &_mapping->otherButtons[QMidi::D_4]);
+    load("Input Tracks",      &_mapping->otherButtons[QMidi::DSharp_4]);
+    load("Audio Tracks",      &_mapping->otherButtons[QMidi::E_4]);
     load("Audio Inst Tracks", &_mapping->otherButtons[QMidi::F_4]);
-    load("Aux Tracks", &_mapping->otherButtons[QMidi::FSharp_4]);
-    load("Bus Tracks", &_mapping->otherButtons[QMidi::G_4]);
-    load("Output Tracks", &_mapping->otherButtons[QMidi::GSharp_4]);
-    load("User", &_mapping->otherButtons[QMidi::A_4]);
+    load("Aux Tracks",        &_mapping->otherButtons[QMidi::FSharp_4]);
+    load("Bus Tracks",        &_mapping->otherButtons[QMidi::G_4]);
+    load("Output Tracks",     &_mapping->otherButtons[QMidi::GSharp_4]);
+    load("User",              &_mapping->otherButtons[QMidi::A_4]);
 
     endResetModel();
 }
@@ -1232,26 +1238,26 @@ void MappingModel::loadAutomation()
 
     load("Modifiers Label", &_mapping->lbModifiers);
 
-    load("Shift", &_mapping->otherButtons[QMidi::ASharp_4]);
-    load("Option", &_mapping->otherButtons[QMidi::B_4]);
+    load("Shift",   &_mapping->otherButtons[QMidi::ASharp_4]);
+    load("Option",  &_mapping->otherButtons[QMidi::B_4]);
     load("Control", &_mapping->otherButtons[QMidi::C_5]);
-    load("Alt", &_mapping->otherButtons[QMidi::CSharp_5]);
+    load("Alt",     &_mapping->otherButtons[QMidi::CSharp_5]);
 
     load("Automation Label", &_mapping->lbAutomation);
 
     load("Read/Off", &_mapping->otherButtons[QMidi::D_5]);
-    load("Write", &_mapping->otherButtons[QMidi::DSharp_5]);
-    load("Trim", &_mapping->otherButtons[QMidi::E_5]);
-    load("Touch", &_mapping->otherButtons[QMidi::F_5]);
-    load("Latch", &_mapping->otherButtons[QMidi::FSharp_5]);
-    load("Groups", &_mapping->otherButtons[QMidi::G_5]);
+    load("Write",    &_mapping->otherButtons[QMidi::DSharp_5]);
+    load("Trim",     &_mapping->otherButtons[QMidi::E_5]);
+    load("Touch",    &_mapping->otherButtons[QMidi::F_5]);
+    load("Latch",    &_mapping->otherButtons[QMidi::FSharp_5]);
+    load("Groups",   &_mapping->otherButtons[QMidi::G_5]);
 
     load("Utilities Label", &_mapping->lbUtilities);
 
-    load("Save", &_mapping->otherButtons[QMidi::GSharp_5]);
-    load("Undo", &_mapping->otherButtons[QMidi::A_5]);
+    load("Save",   &_mapping->otherButtons[QMidi::GSharp_5]);
+    load("Undo",   &_mapping->otherButtons[QMidi::A_5]);
     load("Cancel", &_mapping->otherButtons[QMidi::ASharp_5]);
-    load("Enter", &_mapping->otherButtons[QMidi::B_5]);
+    load("Enter",  &_mapping->otherButtons[QMidi::B_5]);
 
     endResetModel();
 }
@@ -1264,24 +1270,24 @@ void MappingModel::loadTransport()
     load("Transport Label", &_mapping->lbTransport);
 
     load("Markers", &_mapping->otherButtons[QMidi::C_6]);
-    load("Nudge", &_mapping->otherButtons[QMidi::CSharp_6]);
-    load("Cycle", &_mapping->otherButtons[QMidi::D_6]);
-    load("Drop", &_mapping->otherButtons[QMidi::DSharp_6]);
+    load("Nudge",   &_mapping->otherButtons[QMidi::CSharp_6]);
+    load("Cycle",   &_mapping->otherButtons[QMidi::D_6]);
+    load("Drop",    &_mapping->otherButtons[QMidi::DSharp_6]);
     load("Replace", &_mapping->otherButtons[QMidi::E_6]);
-    load("Click", &_mapping->otherButtons[QMidi::F_6]);
-    load("Solo", &_mapping->otherButtons[QMidi::FSharp_6]);
+    load("Click",   &_mapping->otherButtons[QMidi::F_6]);
+    load("Solo",    &_mapping->otherButtons[QMidi::FSharp_6]);
 
-    load("Rewind", &_mapping->otherButtons[QMidi::G_6]);
+    load("Rewind",  &_mapping->otherButtons[QMidi::G_6]);
     load("Forward", &_mapping->otherButtons[QMidi::GSharp_6]);
-    load("Stop", &_mapping->otherButtons[QMidi::A_6]);
-    load("Play", &_mapping->otherButtons[QMidi::ASharp_6]);
-    load("Rec", &_mapping->otherButtons[QMidi::B_6]);
+    load("Stop",    &_mapping->otherButtons[QMidi::A_6]);
+    load("Play",    &_mapping->otherButtons[QMidi::ASharp_6]);
+    load("Rec",     &_mapping->otherButtons[QMidi::B_6]);
 
-    load("Up", &_mapping->otherButtons[QMidi::C_7]);
-    load("Down", &_mapping->otherButtons[QMidi::CSharp_7]);
+    load("Up",    &_mapping->otherButtons[QMidi::C_7]);
+    load("Down",  &_mapping->otherButtons[QMidi::CSharp_7]);
     load("Scrub", &_mapping->otherButtons[QMidi::D_7]);
-    load("Zoom", &_mapping->otherButtons[QMidi::DSharp_7]);
-    load("Left", &_mapping->otherButtons[QMidi::E_7]);
+    load("Zoom",  &_mapping->otherButtons[QMidi::DSharp_7]);
+    load("Left",  &_mapping->otherButtons[QMidi::E_7]);
     load("Right", &_mapping->otherButtons[QMidi::F_7]);
 
     load("Jog", &_mapping->jogBaseAddr);

@@ -49,6 +49,7 @@ private slots: // ====== Helpers
     void processVPotScroll(quint8 track, int value);
     void processVPotLed(quint8 track, quint8 value);
     void processTimecode(quint8 chan, quint8 value);
+    void processAssignment(quint8 chan, quint8 value);
     void processVuMeter(quint8 track, quint8 value);
 
     void midiFader(quint8 track, quint16 value);
@@ -61,6 +62,7 @@ private:
     void applyButtonTrack(const ButtonControl& btn, int i);
     void applyButton(const ButtonControl& btn);
     bool overlaps(int start, int end, int a, int b);
+    QString timecodeToString(quint8 value);
 
 signals:
 

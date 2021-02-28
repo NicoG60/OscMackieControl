@@ -1,21 +1,18 @@
 #include <QApplication>
+#include <version.h>
 #include "oscmackiecontrolapp.h"
 
-#define _STR(X) #X
-#define STRINGIFY(X) _STR(X)
 
 int main(int argc, char *argv[])
 {
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     QApplication app(argc, argv);
     QApplication::setApplicationName("OscMackieControl");
-    QApplication::setApplicationVersion(QStringLiteral("v%1 (%2)").arg(STRINGIFY(SOFT_VERSION)).arg(STRINGIFY(GIT_VERSION)));
+    QApplication::setApplicationVersion(QStringLiteral("v%1 (%2)").arg(PROJECT_VERSION, GIT_VERSION));
 
-    //QApplication::setQuitOnLastWindowClosed(false);
-
-    qDebug() << QOsc::displayVersion();
-    qDebug() << QMidi::displayVersion();
+    QApplication::setQuitOnLastWindowClosed(false);
 
     OscMackieControlApp _;
 

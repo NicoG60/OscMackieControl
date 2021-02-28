@@ -8,6 +8,8 @@ find_package(Qt5 COMPONENTS Quick REQUIRED)
 find_package(Qt5 COMPONENTS QuickControls2 REQUIRED)
 find_package(Qt5 COMPONENTS Xml REQUIRED)
 
+find_package(Qt5QuickCompiler REQUIRED)
+
 include(ProcessorCount)
 ProcessorCount(N_PROC)
 if(N_PROC EQUAL 0) # fallback to 1 if failure
@@ -40,14 +42,30 @@ add_subdirectory(${OSCMACKIECONRTOL_SOURCE_DIR}/third_party/QtAwesome
                  EXCLUDE_FROM_ALL)
 
 # sources
-file(GLOB headers *.h)
-file(GLOB sources *.cpp)
-qt5_add_resources(sources ${OSCMACKIECONRTOL_SOURCE_DIR}/gui/qml.qrc)
+set(HEADERS
+    backend.h
+    iconmanager.h
+    iomonitor.h
+    mapping.h
+    oscmackiecontrolapp.h
+    touchoscbroadcaster.h
+)
+set(SOURCES
+    backend.cpp
+    iconmanager.cpp
+    iomonitor.cpp
+    main.cpp
+    mapping.cpp
+    oscmackiecontrolapp.cpp
+    touchoscbroadcaster.cpp
+)
+qt5_add_resources(ICON_RESOURCES ${OSCMACKIECONRTOL_SOURCE_DIR}/gui/icons.qrc)
+qtquick_compiler_add_resources(QML_RESOURCES ${OSCMACKIECONRTOL_SOURCE_DIR}/gui/qml.qrc)
 
-
+configure_file(version.h.in version.h @ONLY)
 
 # target
-add_executable(OscMackieControl ${sources} ${headers})
+add_executable(OscMackieControl ${SOURCES} ${HEADERS} ${ICON_RESOURCES} ${QML_RESOURCES})
 
 if(WIN32)
     target_sources(OscMackieControl PUBLIC ${OSCMACKIECONRTOL_SOURCE_DIR}/graphical/appicon.rc)
@@ -58,7 +76,13 @@ elseif(APPLE)
     set_source_files_properties(${icon} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
     target_sources(OscMackieControl PUBLIC ${icon})
-    set_target_properties(OscMackieControl PROPERTIES MACOSX_BUNDLE TRUE)
+    set_target_properties(
+        OscMackieControl
+        PROPERTIES
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_INFO_PLIST ${OSCMACKIECONRTOL_SOURCE_DIR}/MacOSXBundleInfo.plist.in
+    )
+
 endif()
 
 target_link_libraries(
@@ -78,7 +102,6 @@ target_link_libraries(
         QMidi
         QtAwesome
 )
-target_compile_definitions(OscMackieControl PRIVATE SOFT_VERSION=${PROJECT_VERSION})
-target_compile_definitions(OscMackieControl PRIVATE GIT_VERSION=${GIT_VERSION})
+target_include_directories(OscMackieControl PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 set_target_properties(OscMackieControl PROPERTIES RUNTIME_OUTPUT_DIRECTORY bin)

@@ -27,7 +27,7 @@ We will dig into each zone with as much details as I could find.
 
 ### Buttons, Leds and Bangs
 
-There are more details about each buttons and each functions down that document but there is a common behaviour to all buttons and leds. They send what I call a MIDI *note bang*. This is a MIDI "Note On" message immediately followed by the corresponding "Note Off". The *bang* uses the velocity of the "Note On" message as a mean of transferring the button / led state. Maximum velocity (127) is a button pressed or a led turned on. Minimum velocity is a button released and or a led turned off.
+There are more details about each buttons and each functions down that document but there is a common behaviour to all buttons and leds. They send what I call a MIDI *note bang*. This is a MIDI "Note On" message immediately followed by the corresponding "Note Off". The *bang* uses the velocity of the "Note On" message as a mean of transferring the button / led state. Maximum velocity (127 / `7F`) is a button pressed or a led turned on. Minimum velocity is a button released and or a led turned off.
 
 As a side note, this is to avoid too many notes being triggered and considered as "On" by the DAW. Remember, it's MIDI and we want to use existing technology with exiting limitations.
 
@@ -60,39 +60,38 @@ F0 00 00 66 14 12 @@ ## ## .. ## F7
 
 Character codes are basic ASCII character. There is room for a character set extension here with some special symbols being used but I've not been able to reference them yet.
 
-### Assignment display
-
-These are controlled with *CC* number 74 and 75 (hex: `4A`, `4B`), for more info on controlling these see [Timecode Display](#timecode-display).
-
 ### SMPTE, BEATS, Rude Solo
 
 Those 3 leds are controlled by *Note Bangs* sent by the DAW.
 
 | LED       | Note | Decimal | Hex  |
 | --------- | ---- | ------- | ---- |
-| SMPTE     | F8   | 113     | 71   |
-| BEATS     | F#8  | 114     | 72   |
-| Rude Solo | G8   | 115     | 73   |
+| SMPTE     | F8   | 113     | `71` |
+| BEATS     | F#8  | 114     | `72` |
+| Rude Solo | G8   | 115     | `73` |
 
-### Timecode Display
+### Assignment & Timecode Display
 
-It si composed of 10 7-segments displays. They are controlled by *Control Change* message sent by the DAW. **Channel 15 (the last one) is used.** From right to left, *CC* number 64 (hex: `40`) to 73 (hex: `49`) as such:
+It is composed of 12 7-segments displays. They are controlled by *Control Change* message sent by the DAW. **Some DAWs use Channel 15 (the last one), others use Channel 0.** From right to left, *CC* number 64 (hex: `40`) to 75 (hex: `4B`) as such:
 
 ![timecode](assets/timecode.png)
 
-The *Value* of the CC control what to display, the 4 most significant bits are *Control* data, the 4 least significant bits are *Value* data.
+The *Value* of the CC control what to display:
 
 ```
-| Control           | Value             |
+|    |dot |            ASCII            |
 | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
 ```
 
-- Bit 7 is always 0
+- Bit 7 is always 0 as per the MIDI standard
 - Bit 6 is the *Dot* on/off toggle. (each 7-seg display has a dot)
-- Bit 5 is always 1
-- Bit 4 is the General on/off toggle.
-- Additionally, add (as in addition) the code of the ASCII character to display. The characters from `0x21` (33) to `0x60` (96) are supported. 
-    > Note: if the character code is between `0x40`(64) and `0x60` (96) , subtract `0x40` from the from the character code to display it properly.
+- Bit 5-0 is the character to display. It supports the characters from 48 (hex: `30`) to 95 (hex: `5F`). Which is the range where alphanumeric are located in ASCII.
+
+As Bit 6 is used for the *Dot* of the 7-segment display, characters from 64 (hex: `40`) to 132 (hex: `90`) are apparently out of range but in fact, the 6th bit is simply ignored. Characters with ASCII code >= 64 (hex: `40`) are stripped from there 6th bit ( or subtracted 64 ) and sent over.
+
+A summary table of available characters is available [in appendix](#special-ascii-table-for-assignment-&-timecode-display)
+
+
 
 ## Mixing zone
 
@@ -425,6 +424,75 @@ All note mapping is on Channel 0 (the first one).
 | Control  | MIDI Channel |
 | -------- | ------------ |
 | Vu Meter | 0            |
+
+# Special ASCII Table for Assignment & Timecode Display
+
+| Mackie Control Code (Bit 5-0) | Equivalent ASCII code | Character |
+| ----------------------------- | --------------------- | --------- |
+| 0 (hex: `00`)                 | 64 (hex: `40`)        |           |
+| 1 (hex: `01`)                 | 65 (hex: `41`)        | A         |
+| 2 (hex: `02`)                 | 66 (hex: `42`)        | B         |
+| 3 (hex: `03`)                 | 67 (hex: `43`)        | C         |
+| 4 (hex: `04`)                 | 68 (hex: `44`)        | D         |
+| 5 (hex: `05`)                 | 69 (hex: `45`)        | E         |
+| 6 (hex: `06`)                 | 70 (hex: `46`)        | F         |
+| 7 (hex: `07`)                 | 71 (hex: `47`)        | G         |
+| 8 (hex: `08`)                 | 72 (hex: `48`)        | H         |
+| 9 (hex: `09`)                 | 73 (hex: `49`)        | I         |
+| 10 (hex: `0A`)                | 74 (hex: `4A`)        | J         |
+| 11 (hex: `0B`)                | 75 (hex: `4B`)        | K         |
+| 12 (hex: `0C`)                | 76 (hex: `4C`)        | L         |
+| 13 (hex: `0D`)                | 77 (hex: `4D`)        | M         |
+| 14 (hex: `0E`)                | 78 (hex: `4E`)        | N         |
+| 15 (hex: `0F`)                | 79 (hex: `4F`)        | O         |
+| 16 (hex: `10`)                | 80 (hex: `50`)        | P         |
+| 17 (hex: `11`)                | 81 (hex: `51`)        | Q         |
+| 18 (hex: `12`)                | 82 (hex: `52`)        | R         |
+| 19 (hex: `13`)                | 83 (hex: `53`)        | S         |
+| 20 (hex: `14`)                | 84 (hex: `54`)        | T         |
+| 21 (hex: `15`)                | 85 (hex: `55`)        | U         |
+| 22 (hex: `16`)                | 86 (hex: `56`)        | V         |
+| 23 (hex: `17`)                | 87 (hex: `57`)        | W         |
+| 24 (hex: `18`)                | 88 (hex: `58`)        | X         |
+| 25 (hex: `19`)                | 89 (hex: `59`)        | Y         |
+| 26 (hex: `1A`)                | 90 (hex: `5A`)        | Z         |
+| 27 (hex: `1B`)                | 91 (hex: `5B`)        |           |
+| 28 (hex: `1C`)                | 92 (hex: `5C`)        |           |
+| 29 (hex: `1D`)                | 93 (hex: `5D`)        |           |
+| 30 (hex: `1E`)                | 94 (hex: `5E`)        |           |
+| 31 (hex: `1F`)                | 95 (hex: `5F`)        |           |
+|                               |                       |           |
+| 32 (hex: `20`)                | 32 (hex: `20`)        | *(Space)* |
+| 33 (hex: `21`)                | 33 (hex: `21`)        |           |
+| 34 (hex: `22`)                | 34 (hex: `22`)        |           |
+| 35 (hex: `23`)                | 35 (hex: `23`)        |           |
+| 36 (hex: `24`)                | 36 (hex: `24`)        |           |
+| 37 (hex: `25`)                | 37 (hex: `25`)        |           |
+| 38 (hex: `26`)                | 38 (hex: `26`)        |           |
+| 39 (hex: `27`)                | 39 (hex: `27`)        |           |
+| 40 (hex: `28`)                | 40 (hex: `28`)        |           |
+| 41 (hex: `29`)                | 41 (hex: `29`)        |           |
+| 42 (hex: `2A`)                | 42 (hex: `2A`)        |           |
+| 43 (hex: `2B`)                | 43 (hex: `2B`)        |           |
+| 44 (hex: `2C`)                | 44 (hex: `2C`)        |           |
+| 45 (hex: `2D`)                | 45 (hex: `2D`)        |           |
+| 46 (hex: `2E`)                | 46 (hex: `2E`)        |           |
+| 47 (hex: `2F`)                | 47 (hex: `2F`)        |           |
+| 48 (hex: `30`)                | 48 (hex: `30`)        | 0         |
+| 49 (hex: `31`)                | 49 (hex: `31`)        | 1         |
+| 50 (hex: `32`)                | 50 (hex: `32`)        | 2         |
+| 51 (hex: `33`)                | 51 (hex: `33`)        | 3         |
+| 52 (hex: `34`)                | 52 (hex: `34`)        | 4         |
+| 53 (hex: `35`)                | 53 (hex: `35`)        | 5         |
+| 54 (hex: `36`)                | 54 (hex: `36`)        | 6         |
+| 55 (hex: `37`)                | 55 (hex: `37`)        | 7         |
+| 56 (hex: `38`)                | 56 (hex: `38`)        | 8         |
+| 58 (hex: `3A`)                | 58 (hex: `3A`)        |           |
+| 59 (hex: `3B`)                | 59 (hex: `3B`)        |           |
+| 60 (hex: `3C`)                | 60 (hex: `3C`)        |           |
+| 61 (hex: `3D`)                | 61 (hex: `3D`)        |           |
+| 62 (hex: `3E`)                | 62 (hex: `3E`)        |           |
+| 63 (hex: `3F`)                | 63 (hex: `3F`)        |           |
 
 # Reminder of MIDI Messages Format
 
