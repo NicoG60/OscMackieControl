@@ -12,8 +12,8 @@ The missing utility that maps Mackie Control to OSC. It allows you to control an
 
 # :warning: DEPRECATION WARNING :warning:
 
-As TouchOSC just release its second version, this software as become obsolete.
-Indeed, TouchOSC mkII features more flexible control and a scripting area.
+As TouchOSC just release its second version, this software has become obsolete.
+Indeed, TouchOSC mk2 features more flexible control and a scripting area.
 These new features allowed me to implement the Mackie Control Protocol directly within TouchOSC.
 
 You can find the project page here: [TouchMCU](https://github.com/NicoG60/TouchMCU)
